@@ -33,7 +33,6 @@ public:
     void setMutationEnabled(bool enabled);
     void setMutationAmount(float mutationAmount);
     void setInstrumentDensity(int instrumentIndex, float density);
-    void setInstrumentSynthEnabled(int instrumentIndex, bool enabled);
     void setInstrumentSampleEnabled(int instrumentIndex, bool enabled);
     void setInstrumentSoundfontEnabled(int instrumentIndex, bool enabled);
     void setInstrumentMidiEnabled(int instrumentIndex, bool enabled);

@@ -7,7 +7,6 @@
 
 #include <sndfile.h>
 
-#include "dsp/InternalVoice.h"
 #include "sample/SampleBuffer.h"
 #include "sample/SampleVoice.h"
 #include "sf2/SoundFontSynth.h"
@@ -56,7 +55,6 @@ bool OfflineRenderer::renderToFile(const GrooveScene& inputScene, const std::str
         return false;
     }
 
-    std::vector<InternalVoice> internalVoices(scene.instruments.size());
     std::vector<SampleVoice> sampleVoices(scene.instruments.size());
     std::vector<std::shared_ptr<const SampleBuffer>> sampleBuffers(scene.instruments.size());
     std::vector<NoteState> soundfontNotes(scene.instruments.size());
@@ -67,7 +65,6 @@ bool OfflineRenderer::renderToFile(const GrooveScene& inputScene, const std::str
     }
 
     for (std::size_t index = 0; index < scene.instruments.size(); ++index) {
-        internalVoices[index].setRole(scene.instruments[index].role);
         if (scene.instruments[index].layers.samplePath.empty() == false) {
             auto buffer = std::make_shared<SampleBuffer>();
             if (buffer->loadFromFile(scene.instruments[index].layers.samplePath)) {
@@ -98,11 +95,6 @@ bool OfflineRenderer::renderToFile(const GrooveScene& inputScene, const std::str
                     const int gateSamples = std::max(1, static_cast<int>(stepDuration * static_cast<double>(gateRatio)));
                     const float gateSeconds = static_cast<float>(static_cast<double>(gateSamples) / static_cast<double>(sampleRate));
 
-                    if (instrument.layers.synthEnabled) {
-                        internalVoices[instrumentIndex].setRole(instrument.role);
-                        internalVoices[instrumentIndex].trigger(step.note, step, gateSeconds);
-                    }
-
                     if (instrument.layers.sampleEnabled) {
                         auto sample = sampleBuffers[instrumentIndex];
                         if ((sample != nullptr) && sample->isValid()) {
@@ -129,8 +121,7 @@ bool OfflineRenderer::renderToFile(const GrooveScene& inputScene, const std::str
             }
 
             float mono = 0.0f;
-            for (std::size_t instrumentIndex = 0; instrumentIndex < internalVoices.size(); ++instrumentIndex) {
-                mono += internalVoices[instrumentIndex].render(static_cast<float>(sampleRate));
+            for (std::size_t instrumentIndex = 0; instrumentIndex < sampleVoices.size(); ++instrumentIndex) {
                 mono += sampleVoices[instrumentIndex].render();
             }
 

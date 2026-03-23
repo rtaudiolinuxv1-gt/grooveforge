@@ -11,7 +11,6 @@
 #include <jack/midiport.h>
 
 #include "core/GrooveTypes.h"
-#include "dsp/InternalVoice.h"
 #include "recording/AudioRecorder.h"
 #include "sample/SampleBuffer.h"
 #include "sample/SampleVoice.h"
@@ -73,7 +72,6 @@ private:
 
     mutable std::mutex stateMutex_;
     GrooveScene scene_ {};
-    std::vector<InternalVoice> internalVoices_;
     std::vector<SampleVoice> sampleVoices_;
     std::vector<std::shared_ptr<const SampleBuffer>> sampleBuffers_;
     std::vector<NoteState> midiNotes_;

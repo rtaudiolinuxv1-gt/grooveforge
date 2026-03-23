@@ -65,10 +65,6 @@ void JackEngine::setScene(const GrooveScene& scene) {
     std::lock_guard<std::mutex> lock(stateMutex_);
     scene_ = normalizedScene(scene);
     ensureRuntimeSize(scene_.instruments.size());
-    for (std::size_t index = 0; index < scene_.instruments.size(); ++index) {
-        internalVoices_[index].setRole(scene_.instruments[index].role);
-    }
-
     if (scene_.soundfontPath.empty()) {
         soundfont_.clear();
     } else if ((soundfont_.path() == scene_.soundfontPath) == false) {
@@ -208,8 +204,7 @@ int JackEngine::process(jack_nframes_t nframes) {
         }
 
         float mono = 0.0f;
-        for (std::size_t index = 0; index < internalVoices_.size(); ++index) {
-            mono += internalVoices_[index].render(static_cast<float>(sampleRate_));
+        for (std::size_t index = 0; index < sampleVoices_.size(); ++index) {
             mono += sampleVoices_[index].render();
         }
 
@@ -232,9 +227,6 @@ int JackEngine::process(jack_nframes_t nframes) {
 }
 
 void JackEngine::ensureRuntimeSize(std::size_t count) {
-    if (internalVoices_.size() < count) {
-        internalVoices_.resize(count);
-    }
     if (sampleVoices_.size() < count) {
         sampleVoices_.resize(count);
     }
@@ -247,8 +239,7 @@ void JackEngine::ensureRuntimeSize(std::size_t count) {
     if (soundfontNotes_.size() < count) {
         soundfontNotes_.resize(count);
     }
-    if (internalVoices_.size() > count) {
-        internalVoices_.resize(count);
+    if (sampleVoices_.size() > count) {
         sampleVoices_.resize(count);
         sampleBuffers_.resize(count);
         midiNotes_.resize(count);
@@ -270,11 +261,6 @@ void JackEngine::renderStepLocked(const GrooveScene& snapshot, void* midiBuffer,
         const float gateRatio = std::clamp(step.gate, 0.05f, 1.5f);
         const int gateSamples = std::max(1, static_cast<int>(stepDuration * static_cast<double>(gateRatio)));
         const float gateSeconds = static_cast<float>(static_cast<double>(gateSamples) / sampleRate_);
-
-        if (instrument.layers.synthEnabled) {
-            internalVoices_[index].setRole(instrument.role);
-            internalVoices_[index].trigger(step.note, step, gateSeconds);
-        }
 
         if (instrument.layers.sampleEnabled) {
             auto sample = sampleBuffers_[index];
@@ -330,9 +316,6 @@ void JackEngine::resetTransportLocked() {
     currentStep_.store(-1);
     completedBars_.store(0);
     stepSamplesRemaining_ = 0.0;
-    for (auto& voice : internalVoices_) {
-        voice.reset();
-    }
     for (auto& voice : sampleVoices_) {
         voice.reset();
     }

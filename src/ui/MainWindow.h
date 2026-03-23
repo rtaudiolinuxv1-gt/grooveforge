@@ -16,6 +16,7 @@ class QGridLayout;
 class QLabel;
 class QLayout;
 class QLineEdit;
+class QMediaPlayer;
 class QPushButton;
 class QScrollArea;
 class QSlider;
@@ -42,7 +43,6 @@ private:
         QLineEdit* nameEdit = nullptr;
         QComboBox* roleCombo = nullptr;
         QSlider* densitySlider = nullptr;
-        QCheckBox* synthCheck = nullptr;
         QCheckBox* sampleCheck = nullptr;
         QCheckBox* soundfontCheck = nullptr;
         QCheckBox* midiCheck = nullptr;
@@ -72,6 +72,8 @@ private:
     void loadProject();
     void loadSampleForInstrument(int instrumentIndex);
     void editStepParameters(int instrumentIndex, int stepIndex);
+    void setPreviewFile(const QString& path);
+    void seekPreview(qint64 deltaMs);
     void loadSoundfontFile();
     void renderBarsToWav();
     void renderSecondsToWav();
@@ -92,9 +94,14 @@ private:
     QPushButton* stopRecordButton_ = nullptr;
     QPushButton* renderBarsWavButton_ = nullptr;
     QPushButton* renderSecondsWavButton_ = nullptr;
+    QPushButton* previewPlayButton_ = nullptr;
+    QPushButton* previewStopButton_ = nullptr;
+    QPushButton* previewForwardButton_ = nullptr;
+    QPushButton* previewRewindButton_ = nullptr;
     QPushButton* loadSoundfontButton_ = nullptr;
     QPushButton* clearSoundfontButton_ = nullptr;
     QPushButton* addInstrumentButton_ = nullptr;
+    QLabel* previewFileLabel_ = nullptr;
     QLabel* soundfontLabel_ = nullptr;
     QLineEdit* newInstrumentNameEdit_ = nullptr;
     QComboBox* newInstrumentRoleCombo_ = nullptr;
@@ -113,6 +120,8 @@ private:
     QScrollArea* stepScrollArea_ = nullptr;
     QWidget* stepGridWidget_ = nullptr;
     QGridLayout* stepGridLayout_ = nullptr;
+    QMediaPlayer* previewPlayer_ = nullptr;
+    QString previewPath_;
     QString lastMessage_;
     std::vector<InstrumentWidgets> instrumentWidgets_;
     std::vector<QLabel*> stepRowLabels_;

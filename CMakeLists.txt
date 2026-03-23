@@ -10,7 +10,7 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Multimedia)
 pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack)
 pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
 pkg_check_modules(FLUIDSYNTH REQUIRED IMPORTED_TARGET fluidsynth)
@@ -21,7 +21,6 @@ set(GROOVE_FORGE_SOURCES
     src/main.cpp
     src/app/GrooveController.cpp
     src/audio/JackEngine.cpp
-    src/dsp/InternalVoice.cpp
     src/export/OfflineRenderer.cpp
     src/generation/PatternGenerator.cpp
     src/recording/AudioRecorder.cpp
@@ -33,7 +32,7 @@ set(GROOVE_FORGE_SOURCES
 
 add_executable(groove_forge ${GROOVE_FORGE_SOURCES})
 target_include_directories(groove_forge PRIVATE src)
-target_link_libraries(groove_forge PRIVATE Qt5::Widgets PkgConfig::JACK PkgConfig::SNDFILE PkgConfig::FLUIDSYNTH Threads::Threads)
+target_link_libraries(groove_forge PRIVATE Qt5::Widgets Qt5::Multimedia PkgConfig::JACK PkgConfig::SNDFILE PkgConfig::FLUIDSYNTH Threads::Threads)
 
 add_executable(pattern_generator_tests
     tests/PatternGeneratorTests.cpp

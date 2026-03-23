@@ -43,7 +43,6 @@ struct Step {
 };
 
 struct InstrumentLayerSettings {
-    bool synthEnabled = true;
     bool sampleEnabled = false;
     bool midiEnabled = false;
     bool soundfontEnabled = false;
@@ -200,7 +199,11 @@ inline const char* audioFileFormatName(AudioFileFormat format) {
 }
 
 inline Step makeStep(float velocity, int note) {
-    return Step {true, velocity, note};
+    Step step;
+    step.active = true;
+    step.velocity = velocity;
+    step.note = note;
+    return step;
 }
 
 inline InstrumentDefinition makeInstrument(InstrumentRole role, const std::string& customName = std::string()) {
@@ -267,7 +270,10 @@ inline void resizeInstrumentSteps(InstrumentDefinition& instrument, int stepCoun
         stepCount = 0;
     }
 
-    const Step defaultStep {false, 0.0f, instrument.rootNote};
+    Step defaultStep;
+    defaultStep.active = false;
+    defaultStep.velocity = 0.0f;
+    defaultStep.note = instrument.rootNote;
     const std::size_t oldSize = instrument.steps.size();
     instrument.steps.resize(static_cast<std::size_t>(stepCount), defaultStep);
     for (std::size_t index = oldSize; index < instrument.steps.size(); ++index) {
@@ -304,6 +310,23 @@ inline GrooveScene normalizedScene(GrooveScene scene) {
         instrument.layers.soundfontBank = std::clamp(instrument.layers.soundfontBank, 0, 16383);
         instrument.layers.soundfontProgram = std::clamp(instrument.layers.soundfontProgram, 0, 127);
         resizeInstrumentSteps(instrument, stepCount);
+        for (auto& step : instrument.steps) {
+            step.note = std::clamp(step.note, 0, 127);
+            step.velocity = std::clamp(step.velocity, 0.0f, 1.0f);
+            if (step.attack <= 0.0f) {
+                step.attack = 0.002f;
+            }
+            if (step.decay <= 0.0f) {
+                step.decay = 0.120f;
+            }
+            if (step.release <= 0.0f) {
+                step.release = 0.080f;
+            }
+            if (step.gate <= 0.0f) {
+                step.gate = 0.82f;
+            }
+            step.sustain = std::clamp(step.sustain, 0.0f, 1.0f);
+        }
     }
 
     return scene;

@@ -179,14 +179,6 @@ void GrooveController::setInstrumentDensity(int instrumentIndex, float density) 
     pushScene();
 }
 
-void GrooveController::setInstrumentSynthEnabled(int instrumentIndex, bool enabled) {
-    if (validInstrumentIndex(instrumentIndex) == false) {
-        return;
-    }
-    scene_.instruments[static_cast<std::size_t>(instrumentIndex)].layers.synthEnabled = enabled;
-    pushScene();
-}
-
 void GrooveController::setInstrumentSampleEnabled(int instrumentIndex, bool enabled) {
     if (validInstrumentIndex(instrumentIndex) == false) {
         return;

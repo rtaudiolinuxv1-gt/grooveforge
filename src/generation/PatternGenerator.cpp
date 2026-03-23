@@ -21,7 +21,10 @@ GrooveScene PatternGenerator::createScene(const GrooveScene& templateScene) {
     for (auto& instrument : scene.instruments) {
         resizeInstrumentSteps(instrument, totalStepCount(scene));
         for (auto& step : instrument.steps) {
-            step = Step {false, 0.0f, instrument.rootNote};
+            step = Step {};
+            step.active = false;
+            step.velocity = 0.0f;
+            step.note = instrument.rootNote;
         }
         generateInstrument(instrument, scene.stepsPerBar, totalStepCount(scene));
     }

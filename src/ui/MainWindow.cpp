@@ -24,6 +24,8 @@
 #include <QLayout>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QMediaPlayer>
+#include <QMediaContent>
 #include <QPushButton>
 #include <QSizePolicy>
 #include <QScrollArea>
@@ -32,6 +34,7 @@
 #include <QTabWidget>
 #include <QStringList>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -73,7 +76,6 @@ QJsonObject instrumentToJson(const InstrumentDefinition& instrument) {
     object["rootNote"] = instrument.rootNote;
 
     QJsonObject layers;
-    layers["synthEnabled"] = instrument.layers.synthEnabled;
     layers["sampleEnabled"] = instrument.layers.sampleEnabled;
     layers["midiEnabled"] = instrument.layers.midiEnabled;
     layers["soundfontEnabled"] = instrument.layers.soundfontEnabled;
@@ -101,7 +103,6 @@ InstrumentDefinition instrumentFromJson(const QJsonObject& object) {
     instrument.rootNote = object["rootNote"].toInt(instrument.rootNote);
 
     const QJsonObject layers = object["layers"].toObject();
-    instrument.layers.synthEnabled = layers["synthEnabled"].toBool(instrument.layers.synthEnabled);
     instrument.layers.sampleEnabled = layers["sampleEnabled"].toBool(instrument.layers.sampleEnabled);
     instrument.layers.midiEnabled = layers["midiEnabled"].toBool(instrument.layers.midiEnabled);
     instrument.layers.soundfontEnabled = layers["soundfontEnabled"].toBool(instrument.layers.soundfontEnabled);
@@ -187,6 +188,7 @@ void populatePresetCombo(QComboBox* combo, const std::vector<SoundFontPreset>& p
 
 MainWindow::MainWindow(GrooveController* controller, QWidget* parent)
     : QMainWindow(parent), controller_(controller) {
+    previewPlayer_ = new QMediaPlayer(this);
     buildUi();
     refreshFromScene();
 
@@ -334,6 +336,11 @@ void MainWindow::buildUi() {
     exportSecondsSpin_->setSingleStep(1.0);
     renderBarsWavButton_ = new QPushButton("Render WAV By Bars");
     renderSecondsWavButton_ = new QPushButton("Render WAV By Seconds");
+    previewFileLabel_ = new QLabel("No preview file loaded");
+    previewPlayButton_ = new QPushButton("Play");
+    previewStopButton_ = new QPushButton("Stop");
+    previewRewindButton_ = new QPushButton("RW");
+    previewForwardButton_ = new QPushButton("FF");
     recordingLayout->addWidget(recordWavButton_, 0, 0);
     recordingLayout->addWidget(recordFlacButton_, 0, 1);
     recordingLayout->addWidget(stopRecordButton_, 0, 2);
@@ -343,6 +350,12 @@ void MainWindow::buildUi() {
     recordingLayout->addWidget(new QLabel("Seconds"), 2, 0);
     recordingLayout->addWidget(exportSecondsSpin_, 2, 1);
     recordingLayout->addWidget(renderSecondsWavButton_, 2, 2);
+    recordingLayout->addWidget(new QLabel("Preview File"), 3, 0);
+    recordingLayout->addWidget(previewFileLabel_, 3, 1, 1, 2);
+    recordingLayout->addWidget(previewRewindButton_, 4, 0);
+    recordingLayout->addWidget(previewPlayButton_, 4, 1);
+    recordingLayout->addWidget(previewStopButton_, 4, 2);
+    recordingLayout->addWidget(previewForwardButton_, 4, 3);
     exportTabLayout->addWidget(recordingBox);
 
     auto* editorScroll = new QScrollArea();
@@ -452,7 +465,11 @@ void MainWindow::buildUi() {
         startRecordingToFile(AudioFileFormat::Flac);
     });
     connect(stopRecordButton_, &QPushButton::clicked, this, [this]() {
+        const QString recordedPath = QString::fromStdString(controller_->recordingPath());
         controller_->stopRecording();
+        if (recordedPath.isEmpty() == false) {
+            setPreviewFile(recordedPath);
+        }
         lastMessage_ = "Recording stopped";
         refreshFromScene();
     });
@@ -461,6 +478,21 @@ void MainWindow::buildUi() {
     });
     connect(renderSecondsWavButton_, &QPushButton::clicked, this, [this]() {
         renderSecondsToWav();
+    });
+    connect(previewPlayButton_, &QPushButton::clicked, this, [this]() {
+        if (previewPath_.isEmpty()) {
+            return;
+        }
+        previewPlayer_->play();
+    });
+    connect(previewStopButton_, &QPushButton::clicked, this, [this]() {
+        previewPlayer_->stop();
+    });
+    connect(previewRewindButton_, &QPushButton::clicked, this, [this]() {
+        seekPreview(-5000);
+    });
+    connect(previewForwardButton_, &QPushButton::clicked, this, [this]() {
+        seekPreview(5000);
     });
 
     setCentralWidget(central);
@@ -495,7 +527,6 @@ void MainWindow::rebuildInstrumentEditors() {
         populateRoleCombo(widgets.roleCombo);
         widgets.densitySlider = new QSlider(Qt::Horizontal);
         widgets.densitySlider->setRange(0, 100);
-        widgets.synthCheck = new QCheckBox("Synth");
         widgets.sampleCheck = new QCheckBox("Sample");
         widgets.soundfontCheck = new QCheckBox("SF2");
         widgets.midiCheck = new QCheckBox("MIDI");
@@ -522,10 +553,9 @@ void MainWindow::rebuildInstrumentEditors() {
         layout->addWidget(removeButton, 0, 6);
         layout->addWidget(new QLabel("Density"), 1, 0);
         layout->addWidget(widgets.densitySlider, 1, 1, 1, 6);
-        layout->addWidget(widgets.synthCheck, 2, 0);
-        layout->addWidget(widgets.sampleCheck, 2, 1);
-        layout->addWidget(widgets.soundfontCheck, 2, 2);
-        layout->addWidget(widgets.midiCheck, 2, 3);
+        layout->addWidget(widgets.sampleCheck, 2, 0);
+        layout->addWidget(widgets.soundfontCheck, 2, 1);
+        layout->addWidget(widgets.midiCheck, 2, 2);
         layout->addWidget(new QLabel("MIDI Ch"), 3, 0);
         layout->addWidget(widgets.midiChannelSpin, 3, 1);
         layout->addWidget(new QLabel("SF2 Ch"), 3, 2);
@@ -550,10 +580,6 @@ void MainWindow::rebuildInstrumentEditors() {
         });
         connect(widgets.densitySlider, &QSlider::valueChanged, this, [this, instrumentIndex](int value) {
             controller_->setInstrumentDensity(instrumentIndex, static_cast<float>(value) / 100.0f);
-        });
-        connect(widgets.synthCheck, &QCheckBox::toggled, this, [this, instrumentIndex](bool checked) {
-            controller_->setInstrumentSynthEnabled(instrumentIndex, checked);
-            refreshFromScene();
         });
         connect(widgets.sampleCheck, &QCheckBox::toggled, this, [this, instrumentIndex](bool checked) {
             controller_->setInstrumentSampleEnabled(instrumentIndex, checked);
@@ -799,7 +825,6 @@ void MainWindow::refreshFromScene() {
         widgets.densitySlider->setValue(static_cast<int>(instrument.density * 100.0f));
         widgets.densitySlider->blockSignals(false);
 
-        widgets.synthCheck->blockSignals(true);
         widgets.sampleCheck->blockSignals(true);
         widgets.soundfontCheck->blockSignals(true);
         widgets.midiCheck->blockSignals(true);
@@ -811,7 +836,6 @@ void MainWindow::refreshFromScene() {
 
         populatePresetCombo(widgets.soundfontPresetCombo, presets);
 
-        widgets.synthCheck->setChecked(instrument.layers.synthEnabled);
         widgets.sampleCheck->setChecked(instrument.layers.sampleEnabled);
         widgets.soundfontCheck->setChecked(instrument.layers.soundfontEnabled);
         widgets.midiCheck->setChecked(instrument.layers.midiEnabled);
@@ -822,7 +846,6 @@ void MainWindow::refreshFromScene() {
         widgets.soundfontPresetCombo->setCurrentIndex(
             comboIndexForPreset(widgets.soundfontPresetCombo, instrument.layers.soundfontBank, instrument.layers.soundfontProgram));
 
-        widgets.synthCheck->blockSignals(false);
         widgets.sampleCheck->blockSignals(false);
         widgets.soundfontCheck->blockSignals(false);
         widgets.midiCheck->blockSignals(false);
@@ -877,6 +900,10 @@ void MainWindow::updateStatus() {
     stopRecordButton_->setEnabled(controller_->isRecording());
     recordWavButton_->setEnabled(controller_->isRecording() == false);
     recordFlacButton_->setEnabled(controller_->isRecording() == false);
+    previewPlayButton_->setEnabled(previewPath_.isEmpty() == false);
+    previewStopButton_->setEnabled(previewPath_.isEmpty() == false);
+    previewRewindButton_->setEnabled(previewPath_.isEmpty() == false);
+    previewForwardButton_->setEnabled(previewPath_.isEmpty() == false);
 
     QStringList parts;
     parts << QString("Tempo %1 BPM").arg(scene.bpm)
@@ -1018,6 +1045,28 @@ void MainWindow::loadSampleForInstrument(int instrumentIndex) {
     refreshFromScene();
 }
 
+void MainWindow::setPreviewFile(const QString& path) {
+    previewPath_ = path;
+    if (previewPath_.isEmpty()) {
+        previewPlayer_->stop();
+        previewPlayer_->setMedia(QMediaContent());
+        previewFileLabel_->setText("No preview file loaded");
+        return;
+    }
+
+    previewPlayer_->stop();
+    previewPlayer_->setMedia(QMediaContent(QUrl::fromLocalFile(previewPath_)));
+    previewFileLabel_->setText(QFileInfo(previewPath_).fileName());
+}
+
+void MainWindow::seekPreview(qint64 deltaMs) {
+    if (previewPath_.isEmpty()) {
+        return;
+    }
+    const qint64 newPosition = std::max<qint64>(0, previewPlayer_->position() + deltaMs);
+    previewPlayer_->setPosition(newPosition);
+}
+
 void MainWindow::loadSoundfontFile() {
     const QString filePath = QFileDialog::getOpenFileName(this, "Load SoundFont", QString(), "SoundFont Files (*.sf2)");
     if (filePath.isEmpty()) {
@@ -1047,6 +1096,7 @@ void MainWindow::renderBarsToWav() {
         return;
     }
 
+    setPreviewFile(path);
     lastMessage_ = QString("Rendered %1 bar(s) to %2").arg(exportBarsSpin_->value()).arg(QFileInfo(path).fileName());
     refreshFromScene();
 }
@@ -1065,6 +1115,7 @@ void MainWindow::renderSecondsToWav() {
         return;
     }
 
+    setPreviewFile(path);
     lastMessage_ = QString("Rendered %1 second(s) to %2").arg(exportSecondsSpin_->value()).arg(QFileInfo(path).fileName());
     refreshFromScene();
 }
@@ -1086,6 +1137,7 @@ void MainWindow::startRecordingToFile(AudioFileFormat format) {
         return;
     }
 
+    setPreviewFile(path);
     lastMessage_ = QString("Recording %1 to %2").arg(audioFileFormatName(format), QFileInfo(path).fileName());
     refreshFromScene();
 }
