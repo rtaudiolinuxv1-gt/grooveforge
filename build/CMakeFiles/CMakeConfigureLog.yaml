@@ -1,0 +1,386 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineSystem.cmake:211 (message)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      The system is: Linux - 5.10.4-rt22-RTAL-opt-HRT-PEMPT - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/local/bin/c++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is GNU, found in:
+        /home/jim/BUILD/build/CMakeFiles/3.27.6/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/usr/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP"
+      binary: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_debfb/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_debfb.dir/build.make CMakeFiles/cmTC_debfb.dir/build
+        make[1]: Entering directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP'
+        Building CXX object CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/local/bin/c++   -v -o CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/usr --libdir=/usr/lib --disable-multilib --with-system-zlib --enable-languages=c,c++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 10.1.0 (GCC) 
+        COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+         /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/ccgulat0.s
+        GNU C++14 (GCC) version 10.1.0 (x86_64-pc-linux-gnu)
+        	compiled by GNU C version 10.1.0, GMP version 6.2.0, MPFR version 4.0.2, MPC version 1.1.0, isl version none
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /opt/faust/include
+         /usr/X11R7/include
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/x86_64-pc-linux-gnu
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/backward
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include
+         /usr/local/include
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed
+         /usr/include
+        End of search list.
+        GNU C++14 (GCC) version 10.1.0 (x86_64-pc-linux-gnu)
+        	compiled by GNU C version 10.1.0, GMP version 6.2.0, MPFR version 4.0.2, MPC version 1.1.0, isl version none
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        Compiler executable checksum: 9872485c709d627b2a5563d743aefd71
+        COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+         /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/as -v --64 -o CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccgulat0.s
+        GNU assembler version 2.34 (x86_64-pc-linux-gnu) using BFD version (GNU Binutils) 2.34
+        COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+        Linking CXX executable cmTC_debfb
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_debfb.dir/link.txt --verbose=1
+        /usr/local/bin/c++  -v CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_debfb 
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/c++
+        COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/lto-wrapper
+        Target: x86_64-pc-linux-gnu
+        Configured with: ../configure --prefix=/usr --libdir=/usr/lib --disable-multilib --with-system-zlib --enable-languages=c,c++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 10.1.0 (GCC) 
+        COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../:/lib/:/usr/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_debfb' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+         /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/collect2 -plugin /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccNdmG01.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_debfb /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0 -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../.. CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crtn.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_debfb' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+        make[1]: Leaving directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/usr/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/opt/faust/include]
+          add: [/usr/X11R7/include]
+          add: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0]
+          add: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/x86_64-pc-linux-gnu]
+          add: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/backward]
+          add: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include]
+          add: [/usr/local/include]
+          add: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/opt/faust/include] ==> [/opt/faust/include]
+        collapse include dir [/usr/X11R7/include] ==> [/usr/X11R7/include]
+        collapse include dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0] ==> [/usr/include/c++/10.1.0]
+        collapse include dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/x86_64-pc-linux-gnu] ==> [/usr/include/c++/10.1.0/x86_64-pc-linux-gnu]
+        collapse include dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/backward] ==> [/usr/include/c++/10.1.0/backward]
+        collapse include dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include] ==> [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed] ==> [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/opt/faust/include;/usr/X11R7/include;/usr/include/c++/10.1.0;/usr/include/c++/10.1.0/x86_64-pc-linux-gnu;/usr/include/c++/10.1.0/backward;/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include;/usr/local/include;/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "/usr/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_debfb/fast]
+        ignore line: [/usr/bin/make  -f CMakeFiles/cmTC_debfb.dir/build.make CMakeFiles/cmTC_debfb.dir/build]
+        ignore line: [make[1]: Entering directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-FsQeuP']
+        ignore line: [Building CXX object CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/local/bin/c++   -v -o CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/usr --libdir=/usr/lib --disable-multilib --with-system-zlib --enable-languages=c c++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 10.1.0 (GCC) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+        ignore line: [ /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/ccgulat0.s]
+        ignore line: [GNU C++14 (GCC) version 10.1.0 (x86_64-pc-linux-gnu)]
+        ignore line: [	compiled by GNU C version 10.1.0  GMP version 6.2.0  MPFR version 4.0.2  MPC version 1.1.0  isl version none]
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /opt/faust/include]
+        ignore line: [ /usr/X11R7/include]
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0]
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/x86_64-pc-linux-gnu]
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../include/c++/10.1.0/backward]
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/include-fixed]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [GNU C++14 (GCC) version 10.1.0 (x86_64-pc-linux-gnu)]
+        ignore line: [	compiled by GNU C version 10.1.0  GMP version 6.2.0  MPFR version 4.0.2  MPC version 1.1.0  isl version none]
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [Compiler executable checksum: 9872485c709d627b2a5563d743aefd71]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+        ignore line: [ /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/as -v --64 -o CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccgulat0.s]
+        ignore line: [GNU assembler version 2.34 (x86_64-pc-linux-gnu) using BFD version (GNU Binutils) 2.34]
+        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-c' '-o' 'CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+        ignore line: [Linking CXX executable cmTC_debfb]
+        ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_debfb.dir/link.txt --verbose=1]
+        ignore line: [/usr/local/bin/c++  -v CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_debfb ]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/c++]
+        ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/lto-wrapper]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Configured with: ../configure --prefix=/usr --libdir=/usr/lib --disable-multilib --with-system-zlib --enable-languages=c c++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 10.1.0 (GCC) ]
+        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/libexec/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../:/lib/:/usr/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_debfb' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+        link line: [ /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/collect2 -plugin /usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccNdmG01.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_debfb /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtbegin.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0 -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../.. CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtend.o /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crtn.o]
+          arg [/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/usr/libexec/gcc/x86_64-pc-linux-gnu/10.1.0/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccNdmG01.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_debfb] ==> ignore
+          arg [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crt1.o] ==> obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crt1.o]
+          arg [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crti.o] ==> obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crti.o]
+          arg [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtbegin.o] ==> obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtbegin.o]
+          arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0]
+          arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib]
+          arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib]
+          arg [-L/lib/../lib] ==> dir [/lib/../lib]
+          arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+          arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib]
+          arg [-L/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../..] ==> dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../..]
+          arg [CMakeFiles/cmTC_debfb.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lm] ==> lib [m]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtend.o] ==> obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtend.o]
+          arg [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crtn.o] ==> obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crtn.o]
+        collapse obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crt1.o] ==> [/usr/lib/crt1.o]
+        collapse obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crti.o] ==> [/usr/lib/crti.o]
+        collapse obj [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib/crtn.o] ==> [/usr/lib/crtn.o]
+        collapse library dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0] ==> [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0]
+        collapse library dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib/../lib] ==> [/usr/x86_64-pc-linux-gnu/lib]
+        collapse library dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../lib] ==> [/usr/lib]
+        collapse library dir [/lib/../lib] ==> [/lib]
+        collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+        collapse library dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/lib] ==> [/usr/x86_64-pc-linux-gnu/lib]
+        collapse library dir [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../..] ==> [/usr/lib]
+        implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+        implicit objs: [/usr/lib/crt1.o;/usr/lib/crti.o;/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtbegin.o;/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/crtend.o;/usr/lib/crtn.o]
+        implicit dirs: [/usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0;/usr/x86_64-pc-linux-gnu/lib;/usr/lib;/lib]
+        implicit fwks: []
+      
+      
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake-3.27/Modules/CheckCXXSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:99 (CHECK_CXX_SOURCE_COMPILES)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "CMakeLists.txt:12 (find_package)"
+    checks:
+      - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
+    directories:
+      source: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN"
+      binary: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_dc0ae/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_dc0ae.dir/build.make CMakeFiles/cmTC_dc0ae.dir/build
+        make[1]: Entering directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN'
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Building CXX object CMakeFiles/cmTC_dc0ae.dir/src.cxx.o
+        /usr/local/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -std=gnu++17 -o CMakeFiles/cmTC_dc0ae.dir/src.cxx.o -c /home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN/src.cxx
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Linking CXX executable cmTC_dc0ae
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dc0ae.dir/link.txt --verbose=1
+        /usr/local/bin/c++ CMakeFiles/cmTC_dc0ae.dir/src.cxx.o -o cmTC_dc0ae 
+        /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/ld: CMakeFiles/cmTC_dc0ae.dir/src.cxx.o: in function `main':
+        src.cxx:(.text+0x2d): undefined reference to `pthread_create'
+        /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/ld: src.cxx:(.text+0x39): undefined reference to `pthread_detach'
+        /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/ld: src.cxx:(.text+0x45): undefined reference to `pthread_cancel'
+        /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/ld: src.cxx:(.text+0x56): undefined reference to `pthread_join'
+        collect2: error: ld returned 1 exit status
+        make[1]: *** [CMakeFiles/cmTC_dc0ae.dir/build.make:99: cmTC_dc0ae] Error 1
+        make[1]: Leaving directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-mzE3cN'
+        make: *** [Makefile:127: cmTC_dc0ae/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:175 (_threads_check_lib)"
+      - "CMakeLists.txt:12 (find_package)"
+    checks:
+      - "Looking for pthread_create in pthreads"
+    directories:
+      source: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO"
+      binary: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREADS_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_fe110/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_fe110.dir/build.make CMakeFiles/cmTC_fe110.dir/build
+        make[1]: Entering directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO'
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Building CXX object CMakeFiles/cmTC_fe110.dir/CheckFunctionExists.cxx.o
+        /usr/local/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create -std=gnu++17 -o CMakeFiles/cmTC_fe110.dir/CheckFunctionExists.cxx.o -c /home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO/CheckFunctionExists.cxx
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Linking CXX executable cmTC_fe110
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fe110.dir/link.txt --verbose=1
+        /usr/local/bin/c++  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_fe110.dir/CheckFunctionExists.cxx.o -o cmTC_fe110  -lpthreads 
+        /usr/lib/gcc/x86_64-pc-linux-gnu/10.1.0/../../../../x86_64-pc-linux-gnu/bin/ld: cannot find -lpthreads
+        collect2: error: ld returned 1 exit status
+        make[1]: *** [CMakeFiles/cmTC_fe110.dir/build.make:99: cmTC_fe110] Error 1
+        make[1]: Leaving directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-RysGUO'
+        make: *** [Makefile:127: cmTC_fe110/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake-3.27/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:112 (CHECK_LIBRARY_EXISTS)"
+      - "/usr/share/cmake-3.27/Modules/FindThreads.cmake:176 (_threads_check_lib)"
+      - "CMakeLists.txt:12 (find_package)"
+    checks:
+      - "Looking for pthread_create in pthread"
+    directories:
+      source: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N"
+      binary: "/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_HAVE_PTHREAD_CREATE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_e51a9/fast
+        /usr/bin/make  -f CMakeFiles/cmTC_e51a9.dir/build.make CMakeFiles/cmTC_e51a9.dir/build
+        make[1]: Entering directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N'
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Building CXX object CMakeFiles/cmTC_e51a9.dir/CheckFunctionExists.cxx.o
+        /usr/local/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create -std=gnu++17 -o CMakeFiles/cmTC_e51a9.dir/CheckFunctionExists.cxx.o -c /home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N/CheckFunctionExists.cxx
+        /bin/sh: warning: setlocale: LC_ALL: cannot change locale (C.UTF-8)
+        Linking CXX executable cmTC_e51a9
+        /usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e51a9.dir/link.txt --verbose=1
+        /usr/local/bin/c++  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_e51a9.dir/CheckFunctionExists.cxx.o -o cmTC_e51a9  -lpthread 
+        make[1]: Leaving directory '/home/jim/BUILD/build/CMakeFiles/CMakeScratch/TryCompile-92xx4N'
+        
+      exitCode: 0
+...

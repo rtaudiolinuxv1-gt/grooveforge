@@ -1,0 +1,19 @@
+Start testing: Mar 23 18:42 GMT
+----------------------------------------------------------
+1/1 Testing: pattern_generator_tests
+1/1 Test: pattern_generator_tests
+Command: "/home/jim/BUILD/build/pattern_generator_tests"
+Directory: /home/jim/BUILD/build
+"pattern_generator_tests" start time: Mar 23 18:42 GMT
+Output:
+----------------------------------------------------------
+pattern_generator_tests passed
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"pattern_generator_tests" end time: Mar 23 18:42 GMT
+"pattern_generator_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Mar 23 18:42 GMT

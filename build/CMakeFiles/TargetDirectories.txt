@@ -1,0 +1,7 @@
+/home/jim/BUILD/build/CMakeFiles/groove_forge.dir
+/home/jim/BUILD/build/CMakeFiles/pattern_generator_tests.dir
+/home/jim/BUILD/build/CMakeFiles/test.dir
+/home/jim/BUILD/build/CMakeFiles/edit_cache.dir
+/home/jim/BUILD/build/CMakeFiles/rebuild_cache.dir
+/home/jim/BUILD/build/CMakeFiles/groove_forge_autogen.dir
+/home/jim/BUILD/build/CMakeFiles/pattern_generator_tests_autogen.dir
