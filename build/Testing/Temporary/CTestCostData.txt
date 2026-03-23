@@ -1,2 +1,0 @@
-pattern_generator_tests 2 0.00221692
----
