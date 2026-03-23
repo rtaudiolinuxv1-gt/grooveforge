@@ -45,6 +45,7 @@ private:
         QSpinBox* soundfontChannelSpin = nullptr;
         QSpinBox* soundfontBankSpin = nullptr;
         QSpinBox* soundfontProgramSpin = nullptr;
+        QComboBox* soundfontPresetCombo = nullptr;
         QPushButton* loadSampleButton = nullptr;
         QPushButton* clearSampleButton = nullptr;
         QLabel* sampleLabel = nullptr;

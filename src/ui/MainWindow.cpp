@@ -21,12 +21,56 @@
 #include <QScrollArea>
 #include <QSlider>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <QStringList>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
 
 namespace groove {
+
+namespace {
+
+struct GmPresetChoice {
+    const char* name;
+    int bank;
+    int program;
+};
+
+const GmPresetChoice kGmPresetChoices[] = {
+    {"Custom Bank/Program", -1, -1},
+    {"Acoustic Grand Piano", 0, 0},
+    {"Bright Piano", 0, 1},
+    {"Honky-tonk Piano", 0, 3},
+    {"Electric Piano", 0, 4},
+    {"Drawbar Organ", 0, 16},
+    {"Nylon Guitar", 0, 24},
+    {"Clean Guitar", 0, 27},
+    {"Acoustic Bass", 0, 32},
+    {"Finger Bass", 0, 33},
+    {"Fretless Bass", 0, 35},
+    {"Strings", 0, 48},
+    {"Choir", 0, 52},
+    {"Trumpet", 0, 56},
+    {"Alto Sax", 0, 65},
+    {"Flute", 0, 73},
+    {"Square Lead", 0, 80},
+    {"Saw Lead", 0, 81},
+    {"Warm Pad", 0, 89},
+    {"Drum Kit", 128, 0},
+};
+
+int gmPresetIndexFor(int bank, int program) {
+    constexpr int kPresetCount = static_cast<int>(sizeof(kGmPresetChoices) / sizeof(kGmPresetChoices[0]));
+    for (int index = 0; index < kPresetCount; ++index) {
+        if ((kGmPresetChoices[index].bank == bank) && (kGmPresetChoices[index].program == program)) {
+            return index;
+        }
+    }
+    return 0;
+}
+
+}  // namespace
 
 MainWindow::MainWindow(GrooveController* controller, QWidget* parent)
     : QMainWindow(parent), controller_(controller) {
@@ -66,6 +110,20 @@ void MainWindow::buildUi() {
     header->addWidget(transportLabel_);
     outer->addLayout(header);
     outer->addWidget(statusLabel_);
+
+    auto* tabs = new QTabWidget();
+    auto* performanceTab = new QWidget();
+    auto* performanceLayout = new QVBoxLayout(performanceTab);
+    performanceLayout->setSpacing(16);
+    auto* instrumentsTab = new QWidget();
+    auto* instrumentsTabLayout = new QVBoxLayout(instrumentsTab);
+    instrumentsTabLayout->setSpacing(16);
+    auto* soundfontTab = new QWidget();
+    auto* soundfontTabLayout = new QVBoxLayout(soundfontTab);
+    soundfontTabLayout->setSpacing(16);
+    auto* exportTab = new QWidget();
+    auto* exportTabLayout = new QVBoxLayout(exportTab);
+    exportTabLayout->setSpacing(16);
 
     auto* controlBox = new QGroupBox("Scene Controls");
     auto* controlLayout = new QGridLayout(controlBox);
@@ -108,7 +166,7 @@ void MainWindow::buildUi() {
     controlLayout->addWidget(swingSlider_, 3, 3);
     controlLayout->addWidget(new QLabel("Mutation Amount"), 4, 0);
     controlLayout->addWidget(mutationSlider_, 4, 1, 1, 3);
-    outer->addWidget(controlBox);
+    performanceLayout->addWidget(controlBox);
 
     auto* instrumentAddBox = new QGroupBox("Instruments");
     auto* instrumentAddLayout = new QHBoxLayout(instrumentAddBox);
@@ -122,7 +180,7 @@ void MainWindow::buildUi() {
     instrumentAddLayout->addWidget(new QLabel("Role"));
     instrumentAddLayout->addWidget(newInstrumentRoleCombo_);
     instrumentAddLayout->addWidget(addInstrumentButton_);
-    outer->addWidget(instrumentAddBox);
+    instrumentsTabLayout->addWidget(instrumentAddBox);
 
     auto* soundfontBox = new QGroupBox("SoundFont");
     auto* soundfontLayout = new QHBoxLayout(soundfontBox);
@@ -132,7 +190,7 @@ void MainWindow::buildUi() {
     soundfontLayout->addWidget(loadSoundfontButton_);
     soundfontLayout->addWidget(clearSoundfontButton_);
     soundfontLayout->addWidget(soundfontLabel_, 1);
-    outer->addWidget(soundfontBox);
+    soundfontTabLayout->addWidget(soundfontBox);
 
     auto* recordingBox = new QGroupBox("Recording + Export");
     auto* recordingLayout = new QGridLayout(recordingBox);
@@ -156,7 +214,7 @@ void MainWindow::buildUi() {
     recordingLayout->addWidget(new QLabel("Seconds"), 2, 0);
     recordingLayout->addWidget(exportSecondsSpin_, 2, 1);
     recordingLayout->addWidget(renderSecondsWavButton_, 2, 2);
-    outer->addWidget(recordingBox);
+    exportTabLayout->addWidget(recordingBox);
 
     auto* editorScroll = new QScrollArea();
     editorScroll->setWidgetResizable(true);
@@ -164,7 +222,7 @@ void MainWindow::buildUi() {
     instrumentEditorLayout_ = new QVBoxLayout(instrumentEditorWidget_);
     instrumentEditorLayout_->setSpacing(12);
     editorScroll->setWidget(instrumentEditorWidget_);
-    outer->addWidget(editorScroll, 1);
+    instrumentsTabLayout->addWidget(editorScroll, 1);
 
     auto* stepBox = new QGroupBox("Step Grid");
     auto* stepBoxLayout = new QVBoxLayout(stepBox);
@@ -175,7 +233,17 @@ void MainWindow::buildUi() {
     stepGridLayout_->setSpacing(4);
     stepScroll->setWidget(stepGridWidget_);
     stepBoxLayout->addWidget(stepScroll);
-    outer->addWidget(stepBox, 1);
+    performanceLayout->addWidget(stepBox, 1);
+
+    performanceLayout->addStretch(1);
+    soundfontTabLayout->addStretch(1);
+    exportTabLayout->addStretch(1);
+
+    tabs->addTab(performanceTab, "Performance");
+    tabs->addTab(instrumentsTab, "Instruments");
+    tabs->addTab(soundfontTab, "SoundFont");
+    tabs->addTab(exportTab, "Export");
+    outer->addWidget(tabs, 1);
 
     connect(playButton_, &QPushButton::clicked, this, [this]() {
         controller_->setPlaying(controller_->isPlaying() == false);
@@ -295,6 +363,10 @@ void MainWindow::rebuildInstrumentEditors() {
         widgets.soundfontBankSpin->setRange(0, 16383);
         widgets.soundfontProgramSpin = new QSpinBox();
         widgets.soundfontProgramSpin->setRange(0, 127);
+        widgets.soundfontPresetCombo = new QComboBox();
+        for (const auto& preset : kGmPresetChoices) {
+            widgets.soundfontPresetCombo->addItem(QString::fromUtf8(preset.name), QVariant(preset.bank));
+        }
         widgets.loadSampleButton = new QPushButton("Load Sample");
         widgets.clearSampleButton = new QPushButton("Clear Sample");
         widgets.sampleLabel = new QLabel("No sample loaded");
@@ -317,9 +389,11 @@ void MainWindow::rebuildInstrumentEditors() {
         layout->addWidget(widgets.soundfontBankSpin, 4, 1);
         layout->addWidget(new QLabel("SF2 Program"), 4, 2);
         layout->addWidget(widgets.soundfontProgramSpin, 4, 3);
-        layout->addWidget(widgets.loadSampleButton, 5, 0);
-        layout->addWidget(widgets.clearSampleButton, 5, 1);
-        layout->addWidget(widgets.sampleLabel, 5, 2, 1, 2);
+        layout->addWidget(new QLabel("GM Preset"), 5, 0);
+        layout->addWidget(widgets.soundfontPresetCombo, 5, 1, 1, 3);
+        layout->addWidget(widgets.loadSampleButton, 6, 0);
+        layout->addWidget(widgets.clearSampleButton, 6, 1);
+        layout->addWidget(widgets.sampleLabel, 6, 2, 1, 2);
 
         connect(widgets.nameEdit, &QLineEdit::editingFinished, this, [this, instrumentIndex, edit = widgets.nameEdit]() {
             controller_->setInstrumentName(instrumentIndex, edit->text().trimmed().toStdString());
@@ -360,6 +434,21 @@ void MainWindow::rebuildInstrumentEditors() {
         connect(widgets.soundfontProgramSpin, qOverload<int>(&QSpinBox::valueChanged), this, [this, instrumentIndex](int value) {
             controller_->setInstrumentSoundfontProgram(instrumentIndex, value);
         });
+        connect(widgets.soundfontPresetCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            [this, instrumentIndex, combo = widgets.soundfontPresetCombo](int index) {
+                if (index <= 0) {
+                    refreshFromScene();
+                    return;
+                }
+
+                const auto& preset = kGmPresetChoices[index];
+                controller_->setInstrumentSoundfontBank(instrumentIndex, preset.bank);
+                controller_->setInstrumentSoundfontProgram(instrumentIndex, preset.program);
+                if (preset.bank == 128) {
+                    controller_->setInstrumentSoundfontChannel(instrumentIndex, 10);
+                }
+                refreshFromScene();
+            });
         connect(widgets.loadSampleButton, &QPushButton::clicked, this, [this, instrumentIndex]() {
             loadSampleForInstrument(instrumentIndex);
         });
@@ -527,6 +616,7 @@ void MainWindow::refreshFromScene() {
         widgets.soundfontChannelSpin->blockSignals(true);
         widgets.soundfontBankSpin->blockSignals(true);
         widgets.soundfontProgramSpin->blockSignals(true);
+        widgets.soundfontPresetCombo->blockSignals(true);
 
         widgets.synthCheck->setChecked(instrument.layers.synthEnabled);
         widgets.sampleCheck->setChecked(instrument.layers.sampleEnabled);
@@ -536,6 +626,7 @@ void MainWindow::refreshFromScene() {
         widgets.soundfontChannelSpin->setValue(instrument.layers.soundfontChannel);
         widgets.soundfontBankSpin->setValue(instrument.layers.soundfontBank);
         widgets.soundfontProgramSpin->setValue(instrument.layers.soundfontProgram);
+        widgets.soundfontPresetCombo->setCurrentIndex(gmPresetIndexFor(instrument.layers.soundfontBank, instrument.layers.soundfontProgram));
 
         widgets.synthCheck->blockSignals(false);
         widgets.sampleCheck->blockSignals(false);
@@ -545,12 +636,14 @@ void MainWindow::refreshFromScene() {
         widgets.soundfontChannelSpin->blockSignals(false);
         widgets.soundfontBankSpin->blockSignals(false);
         widgets.soundfontProgramSpin->blockSignals(false);
+        widgets.soundfontPresetCombo->blockSignals(false);
 
         const bool hasSample = instrument.layers.samplePath.empty() == false;
         const bool hasSoundfont = scene.soundfontPath.empty() == false;
         widgets.sampleCheck->setEnabled(hasSample);
         widgets.clearSampleButton->setEnabled(hasSample);
         widgets.soundfontCheck->setEnabled(hasSoundfont);
+        widgets.soundfontPresetCombo->setEnabled(hasSoundfont);
         widgets.sampleLabel->setText(sampleLabelText(instrument.layers.samplePath));
 
         if (instrumentIndex < static_cast<int>(stepRowLabels_.size())) {
