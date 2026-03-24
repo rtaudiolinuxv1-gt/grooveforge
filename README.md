@@ -33,3 +33,7 @@ Start JACK or PipeWire's JACK shim first, then launch:
 ```bash
 ./RTAudioSeq
 ```
+
+## License
+
+This project is licensed under `GPL-3.0-only`. See [LICENSE](/home/jim/BUILD/LICENSE).
