@@ -1,6 +1,7 @@
 #include "app/GrooveController.h"
 
 #include <algorithm>
+#include <fstream>
 
 namespace groove {
 
@@ -10,7 +11,17 @@ GrooveController::GrooveController() {
 }
 
 bool GrooveController::initialize() {
-    audioReady_ = engine_.start("groove_forge");
+    audioReady_ = engine_.start("RTAudioSeq");
+    {
+        constexpr const char* kDefaultSoundfontPath = "/usr/share/sounds/default.sf2";
+        std::ifstream soundfontFile(kDefaultSoundfontPath, std::ios::binary);
+        if (soundfontFile.good() && engine_.loadSoundfont(kDefaultSoundfontPath)) {
+            scene_.soundfontPath = kDefaultSoundfontPath;
+            for (auto& instrument : scene_.instruments) {
+                instrument.layers.soundfontEnabled = true;
+            }
+        }
+    }
     pushScene();
     return audioReady_;
 }
@@ -340,6 +351,13 @@ int GrooveController::currentStep() const {
 
 bool GrooveController::audioReady() const {
     return audioReady_;
+}
+
+bool GrooveController::autoConnectOutputs() {
+    if (audioReady_ == false) {
+        return false;
+    }
+    return engine_.autoConnectOutputs();
 }
 
 void GrooveController::tickAutomation() {

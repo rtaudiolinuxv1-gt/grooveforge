@@ -58,6 +58,7 @@ public:
     bool isPlaying() const;
     int currentStep() const;
     bool audioReady() const;
+    bool autoConnectOutputs();
     void tickAutomation();
 
 private:

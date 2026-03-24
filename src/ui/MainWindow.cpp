@@ -45,7 +45,9 @@ namespace {
 QJsonObject stepToJson(const Step& step) {
     QJsonObject object;
     object["active"] = step.active;
+    object["locked"] = step.locked;
     object["velocity"] = step.velocity;
+    object["volume"] = step.volume;
     object["note"] = step.note;
     object["attack"] = step.attack;
     object["decay"] = step.decay;
@@ -58,7 +60,9 @@ QJsonObject stepToJson(const Step& step) {
 Step stepFromJson(const QJsonObject& object) {
     Step step;
     step.active = object["active"].toBool(false);
+    step.locked = object["locked"].toBool(false);
     step.velocity = static_cast<float>(object["velocity"].toDouble(0.0));
+    step.volume = static_cast<float>(object["volume"].toDouble(step.volume));
     step.note = object["note"].toInt(60);
     step.attack = static_cast<float>(object["attack"].toDouble(step.attack));
     step.decay = static_cast<float>(object["decay"].toDouble(step.decay));
@@ -74,6 +78,12 @@ QJsonObject instrumentToJson(const InstrumentDefinition& instrument) {
     object["role"] = static_cast<int>(instrument.role);
     object["density"] = instrument.density;
     object["rootNote"] = instrument.rootNote;
+    object["defaultVolume"] = instrument.stepDefaults.volume;
+    object["defaultAttack"] = instrument.stepDefaults.attack;
+    object["defaultDecay"] = instrument.stepDefaults.decay;
+    object["defaultSustain"] = instrument.stepDefaults.sustain;
+    object["defaultRelease"] = instrument.stepDefaults.release;
+    object["defaultGate"] = instrument.stepDefaults.gate;
 
     QJsonObject layers;
     layers["sampleEnabled"] = instrument.layers.sampleEnabled;
@@ -101,6 +111,12 @@ InstrumentDefinition instrumentFromJson(const QJsonObject& object) {
         object["name"].toString().trimmed().toStdString());
     instrument.density = static_cast<float>(object["density"].toDouble(instrument.density));
     instrument.rootNote = object["rootNote"].toInt(instrument.rootNote);
+    instrument.stepDefaults.volume = static_cast<float>(object["defaultVolume"].toDouble(instrument.stepDefaults.volume));
+    instrument.stepDefaults.attack = static_cast<float>(object["defaultAttack"].toDouble(instrument.stepDefaults.attack));
+    instrument.stepDefaults.decay = static_cast<float>(object["defaultDecay"].toDouble(instrument.stepDefaults.decay));
+    instrument.stepDefaults.sustain = static_cast<float>(object["defaultSustain"].toDouble(instrument.stepDefaults.sustain));
+    instrument.stepDefaults.release = static_cast<float>(object["defaultRelease"].toDouble(instrument.stepDefaults.release));
+    instrument.stepDefaults.gate = static_cast<float>(object["defaultGate"].toDouble(instrument.stepDefaults.gate));
 
     const QJsonObject layers = object["layers"].toObject();
     instrument.layers.sampleEnabled = layers["sampleEnabled"].toBool(instrument.layers.sampleEnabled);
@@ -169,6 +185,52 @@ int comboIndexForPreset(const QComboBox* combo, int bank, int program) {
     return 0;
 }
 
+QString soundfontPresetNameForInstrument(const std::vector<SoundFontPreset>& presets, const InstrumentDefinition& instrument) {
+    for (const auto& preset : presets) {
+        if ((preset.bank == instrument.layers.soundfontBank) && (preset.program == instrument.layers.soundfontProgram)) {
+            return QString::fromStdString(preset.name);
+        }
+    }
+    return QString();
+}
+
+QString rowLabelText(const InstrumentDefinition& instrument, const std::vector<SoundFontPreset>& presets, bool hasSoundfont) {
+    QString label = QString::fromStdString(instrument.name);
+    if (hasSoundfont == false) {
+        return label;
+    }
+
+    const QString presetName = soundfontPresetNameForInstrument(presets, instrument);
+    if (presetName.isEmpty()) {
+        return label;
+    }
+    return QString("%1 (%2)").arg(label, presetName);
+}
+
+QString midiNoteName(int midiNote) {
+    static const char* kNoteNames[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    midiNote = std::clamp(midiNote, 0, 127);
+    const int octave = (midiNote / 12) - 1;
+    return QString("%1%2").arg(kNoteNames[midiNote % 12]).arg(octave);
+}
+
+bool isBlackKey(int semitone) {
+    switch (semitone) {
+    case 1:
+    case 3:
+    case 6:
+    case 8:
+    case 10:
+        return true;
+    default:
+        return false;
+    }
+}
+
+QString keyboardButtonLabel(int midiNote) {
+    return midiNoteName(midiNote);
+}
+
 void populatePresetCombo(QComboBox* combo, const std::vector<SoundFontPreset>& presets) {
     combo->clear();
     combo->addItem("Custom Bank/Program");
@@ -191,6 +253,7 @@ MainWindow::MainWindow(GrooveController* controller, QWidget* parent)
     previewPlayer_ = new QMediaPlayer(this);
     buildUi();
     refreshFromScene();
+    scheduleGridGeometryRefresh();
 
     timer_ = new QTimer(this);
     connect(timer_, &QTimer::timeout, this, [this]() {
@@ -203,10 +266,7 @@ MainWindow::MainWindow(GrooveController* controller, QWidget* parent)
 
 void MainWindow::resizeEvent(QResizeEvent* event) {
     QMainWindow::resizeEvent(event);
-    updateStepGridButtonSizing();
-    if (stepGridWidget_ != nullptr) {
-        stepGridWidget_->adjustSize();
-    }
+    scheduleGridGeometryRefresh();
 }
 
 void MainWindow::buildUi() {
@@ -218,11 +278,11 @@ void MainWindow::buildUi() {
     auto titleFont = QFont("DejaVu Sans", 20, QFont::Bold);
     auto labelFont = QFont("DejaVu Sans Mono", 10);
     setFont(labelFont);
-    setWindowTitle("Groove Forge");
+    setWindowTitle("RTAudioSeq");
     resize(1560, 980);
 
     auto* header = new QHBoxLayout();
-    auto* title = new QLabel("Groove Forge");
+    auto* title = new QLabel("RTAudioSeq");
     title->setFont(titleFont);
     transportLabel_ = new QLabel("STOP");
     transportLabel_->setObjectName("transportLabel");
@@ -251,6 +311,7 @@ void MainWindow::buildUi() {
     auto* controlLayout = new QGridLayout(controlBox);
 
     playButton_ = new QPushButton("Play");
+    connectOutputsButton_ = new QPushButton("Connect Outputs");
     auto* regenerateButton = new QPushButton("Regenerate");
     auto* mutateButton = new QPushButton("Mutate Now");
     bpmSpin_ = new QSpinBox();
@@ -274,6 +335,7 @@ void MainWindow::buildUi() {
     controlLayout->addWidget(regenerateButton, 0, 1);
     controlLayout->addWidget(mutateButton, 0, 2);
     controlLayout->addWidget(mutationEnabledCheck_, 0, 3);
+    controlLayout->addWidget(connectOutputsButton_, 0, 4);
     controlLayout->addWidget(new QLabel("BPM"), 1, 0);
     controlLayout->addWidget(bpmSpin_, 1, 1);
     controlLayout->addWidget(new QLabel("Pattern Bars"), 1, 2);
@@ -369,7 +431,7 @@ void MainWindow::buildUi() {
     auto* stepBox = new QGroupBox("Step Grid");
     auto* stepBoxLayout = new QVBoxLayout(stepBox);
     stepScrollArea_ = new QScrollArea();
-    stepScrollArea_->setWidgetResizable(false);
+    stepScrollArea_->setWidgetResizable(true);
     stepScrollArea_->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     stepScrollArea_->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     stepScrollArea_->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -383,6 +445,37 @@ void MainWindow::buildUi() {
     stepBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     performanceLayout->addWidget(stepBox, 1);
 
+    stepKeyboardBox_ = new QGroupBox("Step Note Keyboard");
+    auto* keyboardLayout = new QVBoxLayout(stepKeyboardBox_);
+    selectedStepLabel_ = new QLabel("Select a step to edit its note.");
+    keyboardLayout->addWidget(selectedStepLabel_);
+
+    auto* keyboardControlLayout = new QHBoxLayout();
+    octaveDownButton_ = new QPushButton("Octave -");
+    octaveUpButton_ = new QPushButton("Octave +");
+    keyboardControlLayout->addWidget(octaveDownButton_);
+    keyboardControlLayout->addWidget(octaveUpButton_);
+    keyboardControlLayout->addStretch(1);
+    keyboardLayout->addLayout(keyboardControlLayout);
+
+    auto* keyLayout = new QGridLayout();
+    keyLayout->setHorizontalSpacing(4);
+    keyLayout->setVerticalSpacing(4);
+    for (int semitone = 0; semitone < 12; ++semitone) {
+        auto* keyButton = new QPushButton();
+        keyButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        keyButton->setMinimumHeight(56);
+        const bool blackKey = isBlackKey(semitone);
+        keyButton->setProperty("blackKey", blackKey);
+        connect(keyButton, &QPushButton::clicked, this, [this, semitone]() {
+            applySelectedStepNote((selectedKeyboardOctave_ * 12) + semitone);
+        });
+        keyLayout->addWidget(keyButton, blackKey ? 0 : 1, semitone);
+        keyboardNoteButtons_.push_back(keyButton);
+    }
+    keyboardLayout->addLayout(keyLayout);
+    performanceLayout->addWidget(stepKeyboardBox_);
+
     soundfontTabLayout->addStretch(1);
     exportTabLayout->addStretch(1);
 
@@ -395,6 +488,14 @@ void MainWindow::buildUi() {
     connect(playButton_, &QPushButton::clicked, this, [this]() {
         controller_->setPlaying(controller_->isPlaying() == false);
         updateStatus();
+    });
+    connect(connectOutputsButton_, &QPushButton::clicked, this, [this]() {
+        if (controller_->autoConnectOutputs()) {
+            lastMessage_ = "Connected JACK outputs";
+        } else {
+            lastMessage_ = "Could not connect JACK outputs";
+        }
+        refreshFromScene();
     });
     connect(regenerateButton, &QPushButton::clicked, this, [this]() {
         controller_->regenerateScene();
@@ -501,11 +602,23 @@ void MainWindow::buildUi() {
         "QGroupBox { border: 1px solid #343846; margin-top: 12px; padding-top: 12px; font-weight: bold; }"
         "QPushButton { background: #212734; border: 1px solid #3b455b; padding: 8px; min-width: 36px; }"
         "QPushButton:hover { background: #293143; }"
+        "QPushButton[blackKey=\"true\"] { background: #141821; color: #f3f1e8; border: 1px solid #5a6377; }"
+        "QPushButton[blackKey=\"true\"]:hover { background: #202737; }"
         "QCheckBox { spacing: 8px; }"
+        "QCheckBox::indicator { width: 18px; height: 18px; border: 1px solid #6d7a96; background: #171b24; }"
+        "QCheckBox::indicator:checked { background: #e0a458; border: 1px solid #f3f1e8; }"
+        "QCheckBox::indicator:unchecked { background: #171b24; border: 1px solid #6d7a96; }"
         "QSlider::groove:horizontal { background: #212734; height: 8px; }"
         "QSlider::handle:horizontal { background: #e0a458; width: 16px; margin: -4px 0; }"
         "QSpinBox, QDoubleSpinBox, QLineEdit, QComboBox { background: #171b24; border: 1px solid #394154; padding: 4px; }"
         "QLabel#transportLabel { color: #e0a458; font-size: 18px; font-weight: bold; }");
+
+    connect(octaveDownButton_, &QPushButton::clicked, this, [this]() {
+        shiftSelectedKeyboardOctave(-1);
+    });
+    connect(octaveUpButton_, &QPushButton::clicked, this, [this]() {
+        shiftSelectedKeyboardOctave(1);
+    });
 }
 
 void MainWindow::rebuildInstrumentEditors() {
@@ -520,6 +633,7 @@ void MainWindow::rebuildInstrumentEditors() {
         auto* moveUpButton = new QPushButton("Up");
         auto* moveDownButton = new QPushButton("Down");
         auto* removeButton = new QPushButton("Remove");
+        auto* stepDefaultsButton = new QPushButton("Step Defaults");
 
         InstrumentWidgets widgets;
         widgets.nameEdit = new QLineEdit();
@@ -552,7 +666,8 @@ void MainWindow::rebuildInstrumentEditors() {
         layout->addWidget(moveDownButton, 0, 5);
         layout->addWidget(removeButton, 0, 6);
         layout->addWidget(new QLabel("Density"), 1, 0);
-        layout->addWidget(widgets.densitySlider, 1, 1, 1, 6);
+        layout->addWidget(widgets.densitySlider, 1, 1, 1, 5);
+        layout->addWidget(stepDefaultsButton, 1, 6);
         layout->addWidget(widgets.sampleCheck, 2, 0);
         layout->addWidget(widgets.soundfontCheck, 2, 1);
         layout->addWidget(widgets.midiCheck, 2, 2);
@@ -633,6 +748,9 @@ void MainWindow::rebuildInstrumentEditors() {
             controller_->removeInstrument(instrumentIndex);
             refreshFromScene();
         });
+        connect(stepDefaultsButton, &QPushButton::clicked, this, [this, instrumentIndex]() {
+            editInstrumentDefaults(instrumentIndex);
+        });
         connect(widgets.loadSampleButton, &QPushButton::clicked, this, [this, instrumentIndex]() {
             loadSampleForInstrument(instrumentIndex);
         });
@@ -654,29 +772,37 @@ void MainWindow::rebuildStepGrid() {
     stepRowLabels_.clear();
 
     const GrooveScene scene = controller_->scene();
+    const std::vector<SoundFontPreset> presets = controller_->soundfontPresets();
+    const bool hasSoundfont = scene.soundfontPath.empty() == false;
     for (int stepIndex = 0; stepIndex < scene.stepsPerBar; ++stepIndex) {
         auto* marker = new QLabel(QString::number(stepIndex + 1));
         marker->setAlignment(Qt::AlignCenter);
-        stepGridLayout_->addWidget(marker, 0, stepIndex + 1);
+        stepGridLayout_->addWidget(marker, 0, stepIndex + 2);
     }
 
     for (int instrumentIndex = 0; instrumentIndex < static_cast<int>(scene.instruments.size()); ++instrumentIndex) {
-        auto* label = new QLabel(QString::fromStdString(scene.instruments[static_cast<std::size_t>(instrumentIndex)].name));
+        const auto& instrument = scene.instruments[static_cast<std::size_t>(instrumentIndex)];
+        auto* label = new QLabel(rowLabelText(instrument, presets, hasSoundfont));
         stepGridLayout_->addWidget(label, instrumentIndex + 1, 0);
         stepRowLabels_.push_back(label);
+
+        auto* defaultsButton = new QPushButton("Defaults");
+        defaultsButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        connect(defaultsButton, &QPushButton::clicked, this, [this, instrumentIndex]() {
+            editInstrumentDefaults(instrumentIndex);
+        });
+        stepGridLayout_->addWidget(defaultsButton, instrumentIndex + 1, 1);
 
         std::vector<QPushButton*> rowButtons;
         for (int stepIndex = 0; stepIndex < scene.stepsPerBar; ++stepIndex) {
             auto* button = makeStepButton(instrumentIndex, stepIndex);
-            stepGridLayout_->addWidget(button, instrumentIndex + 1, stepIndex + 1);
+            stepGridLayout_->addWidget(button, instrumentIndex + 1, stepIndex + 2);
             rowButtons.push_back(button);
         }
         stepButtons_.push_back(rowButtons);
     }
 
-    updateStepGridButtonSizing();
-    stepGridWidget_->adjustSize();
-    stepGridWidget_->setMinimumSize(stepGridLayout_->sizeHint());
+    scheduleGridGeometryRefresh();
 }
 
 void MainWindow::clearLayout(QLayout* layout) {
@@ -701,7 +827,7 @@ void MainWindow::updateStepGridButtonSizing() {
     }
 
     const int rowCount = static_cast<int>(stepButtons_.size()) + 1;
-    const int columnCount = static_cast<int>(stepButtons_.front().size()) + 1;
+    const int columnCount = static_cast<int>(stepButtons_.front().size()) + 2;
     const QSize viewportSize = stepScrollArea_->viewport()->size();
     if ((viewportSize.width() <= 0) || (viewportSize.height() <= 0)) {
         return;
@@ -720,6 +846,151 @@ void MainWindow::updateStepGridButtonSizing() {
             button->setFixedSize(buttonSize, buttonSize);
         }
     }
+}
+
+void MainWindow::refreshGridGeometry() {
+    updateStepGridButtonSizing();
+    if (stepGridWidget_ == nullptr) {
+        return;
+    }
+    stepGridWidget_->adjustSize();
+    stepGridWidget_->setMinimumSize(stepGridLayout_->sizeHint());
+    stepGridWidget_->updateGeometry();
+    if (stepScrollArea_ != nullptr) {
+        stepScrollArea_->widget()->updateGeometry();
+        stepScrollArea_->viewport()->update();
+    }
+}
+
+void MainWindow::scheduleGridGeometryRefresh() {
+    QTimer::singleShot(0, this, [this]() {
+        refreshGridGeometry();
+    });
+}
+
+void MainWindow::setSelectedStep(int instrumentIndex, int absoluteStepIndex) {
+    const GrooveScene scene = controller_->scene();
+    if ((instrumentIndex < 0) || (instrumentIndex >= static_cast<int>(scene.instruments.size()))
+        || (absoluteStepIndex < 0) || (absoluteStepIndex >= totalStepCount(scene))) {
+        selectedInstrumentIndex_ = -1;
+        selectedAbsoluteStepIndex_ = -1;
+        updateVirtualKeyboard();
+        refreshStepHighlight();
+        return;
+    }
+
+    selectedInstrumentIndex_ = instrumentIndex;
+    selectedAbsoluteStepIndex_ = absoluteStepIndex;
+    const Step& step = scene.instruments[static_cast<std::size_t>(instrumentIndex)].steps[static_cast<std::size_t>(absoluteStepIndex)];
+    selectedKeyboardOctave_ = std::clamp(step.note / 12, 0, 10);
+    updateVirtualKeyboard();
+    refreshStepHighlight();
+}
+
+bool MainWindow::hasSelectedVisibleStep(const GrooveScene& scene) const {
+    if ((selectedInstrumentIndex_ < 0) || (selectedAbsoluteStepIndex_ < 0)
+        || (selectedInstrumentIndex_ >= static_cast<int>(scene.instruments.size()))
+        || (selectedAbsoluteStepIndex_ >= totalStepCount(scene))) {
+        return false;
+    }
+
+    const int barOffset = currentEditBarIndex() * scene.stepsPerBar;
+    const int barLimit = barOffset + scene.stepsPerBar;
+    return (selectedAbsoluteStepIndex_ >= barOffset) && (selectedAbsoluteStepIndex_ < barLimit);
+}
+
+void MainWindow::updateVirtualKeyboard() {
+    if ((stepKeyboardBox_ == nullptr) || (selectedStepLabel_ == nullptr)) {
+        return;
+    }
+
+    const GrooveScene scene = controller_->scene();
+    const bool hasSelection = hasSelectedVisibleStep(scene);
+    stepKeyboardBox_->setEnabled(hasSelection);
+    if (hasSelection == false) {
+        selectedStepLabel_->setText("Select a visible step to edit its note.");
+        if (octaveDownButton_ != nullptr) {
+            octaveDownButton_->setEnabled(false);
+        }
+        if (octaveUpButton_ != nullptr) {
+            octaveUpButton_->setEnabled(false);
+        }
+        for (auto* button : keyboardNoteButtons_) {
+            button->setEnabled(false);
+            const bool blackKey = button->property("blackKey").toBool();
+            button->setText(blackKey ? "#" : "");
+            button->setStyleSheet(QString());
+        }
+        return;
+    }
+
+    const Step& step = scene.instruments[static_cast<std::size_t>(selectedInstrumentIndex_)]
+                           .steps[static_cast<std::size_t>(selectedAbsoluteStepIndex_)];
+    const auto& instrument = scene.instruments[static_cast<std::size_t>(selectedInstrumentIndex_)];
+    const int relativeStep = selectedAbsoluteStepIndex_ - (currentEditBarIndex() * scene.stepsPerBar);
+    selectedKeyboardOctave_ = std::clamp(selectedKeyboardOctave_, 0, 10);
+
+    selectedStepLabel_->setText(QString("%1 | Step %2 | Note %3 (%4)")
+            .arg(QString::fromStdString(instrument.name))
+            .arg(relativeStep + 1)
+            .arg(midiNoteName(step.note))
+            .arg(step.note));
+
+    if (octaveDownButton_ != nullptr) {
+        octaveDownButton_->setEnabled(selectedKeyboardOctave_ > 0);
+    }
+    if (octaveUpButton_ != nullptr) {
+        octaveUpButton_->setEnabled(selectedKeyboardOctave_ < 10);
+    }
+
+    for (int semitone = 0; semitone < static_cast<int>(keyboardNoteButtons_.size()); ++semitone) {
+        auto* button = keyboardNoteButtons_[static_cast<std::size_t>(semitone)];
+        const int midiNote = std::min(127, (selectedKeyboardOctave_ * 12) + semitone);
+        const bool blackKey = button->property("blackKey").toBool();
+        const bool isCurrent = step.note == midiNote;
+        button->setEnabled(midiNote <= 127);
+        button->setText(keyboardButtonLabel(midiNote));
+        if (isCurrent) {
+            button->setStyleSheet(
+                blackKey
+                    ? "QPushButton { background: #e0a458; color: #111318; border: 2px solid #f3f1e8; font-weight: bold; }"
+                    : "QPushButton { background: #f5d48f; color: #111318; border: 2px solid #f3f1e8; font-weight: bold; }");
+        } else {
+            button->setStyleSheet(
+                blackKey
+                    ? "QPushButton { background: #141821; color: #f3f1e8; border: 1px solid #5a6377; }"
+                    : "QPushButton { background: #e9edf5; color: #111318; border: 1px solid #7d879b; }");
+        }
+    }
+}
+
+void MainWindow::applySelectedStepNote(int midiNote) {
+    const GrooveScene scene = controller_->scene();
+    if (hasSelectedVisibleStep(scene) == false) {
+        return;
+    }
+
+    GrooveScene updatedScene = scene;
+    Step& step = updatedScene.instruments[static_cast<std::size_t>(selectedInstrumentIndex_)]
+                     .steps[static_cast<std::size_t>(selectedAbsoluteStepIndex_)];
+    step.note = std::clamp(midiNote, 0, 127);
+    step.active = true;
+    controller_->setScene(updatedScene);
+    lastMessage_ = QString("Set %1 step %2 to %3")
+        .arg(QString::fromStdString(updatedScene.instruments[static_cast<std::size_t>(selectedInstrumentIndex_)].name))
+        .arg((selectedAbsoluteStepIndex_ - (currentEditBarIndex() * scene.stepsPerBar)) + 1)
+        .arg(midiNoteName(step.note));
+    refreshFromScene();
+}
+
+void MainWindow::shiftSelectedKeyboardOctave(int delta) {
+    const GrooveScene scene = controller_->scene();
+    if (hasSelectedVisibleStep(scene) == false) {
+        return;
+    }
+
+    selectedKeyboardOctave_ = std::clamp(selectedKeyboardOctave_ + delta, 0, 10);
+    updateVirtualKeyboard();
 }
 
 void MainWindow::populateRoleCombo(QComboBox* combo) const {
@@ -864,17 +1135,20 @@ void MainWindow::refreshFromScene() {
         widgets.sampleLabel->setText(sampleLabelText(instrument.layers.samplePath));
 
         if (instrumentIndex < static_cast<int>(stepRowLabels_.size())) {
-            stepRowLabels_[static_cast<std::size_t>(instrumentIndex)]->setText(QString::fromStdString(instrument.name));
+            stepRowLabels_[static_cast<std::size_t>(instrumentIndex)]->setText(rowLabelText(instrument, presets, hasSoundfont));
         }
 
         for (int stepIndex = 0; stepIndex < scene.stepsPerBar; ++stepIndex) {
             const int absoluteStep = barOffset + stepIndex;
             const bool active = absoluteStep < totalStepCount(scene) && instrument.steps[static_cast<std::size_t>(absoluteStep)].active;
-            stepButtons_[static_cast<std::size_t>(instrumentIndex)][static_cast<std::size_t>(stepIndex)]->setText(active ? "X" : ".");
+            const bool locked = absoluteStep < totalStepCount(scene) && instrument.steps[static_cast<std::size_t>(absoluteStep)].locked;
+            stepButtons_[static_cast<std::size_t>(instrumentIndex)][static_cast<std::size_t>(stepIndex)]->setText(
+                locked ? (active ? "L" : "l") : (active ? "X" : "."));
         }
     }
 
-    updateStepGridButtonSizing();
+    scheduleGridGeometryRefresh();
+    updateVirtualKeyboard();
     refreshStepHighlight();
     updateStatus();
 }
@@ -887,8 +1161,11 @@ void MainWindow::refreshStepHighlight() {
         for (int stepIndex = 0; stepIndex < static_cast<int>(stepButtons_[static_cast<std::size_t>(instrumentIndex)].size()); ++stepIndex) {
             const int absoluteStep = barOffset + stepIndex;
             const bool active = absoluteStep < totalStepCount(scene) && scene.instruments[static_cast<std::size_t>(instrumentIndex)].steps[static_cast<std::size_t>(absoluteStep)].active;
+            const bool locked = absoluteStep < totalStepCount(scene) && scene.instruments[static_cast<std::size_t>(instrumentIndex)].steps[static_cast<std::size_t>(absoluteStep)].locked;
             const bool highlighted = absoluteStep == currentStep;
-            stepButtons_[static_cast<std::size_t>(instrumentIndex)][static_cast<std::size_t>(stepIndex)]->setStyleSheet(stepButtonStyle(active, highlighted));
+            const bool selected = (instrumentIndex == selectedInstrumentIndex_) && (absoluteStep == selectedAbsoluteStepIndex_);
+            stepButtons_[static_cast<std::size_t>(instrumentIndex)][static_cast<std::size_t>(stepIndex)]->setStyleSheet(
+                stepButtonStyle(active, highlighted, locked, selected));
         }
     }
 }
@@ -897,6 +1174,7 @@ void MainWindow::updateStatus() {
     const GrooveScene scene = controller_->scene();
     playButton_->setText(controller_->isPlaying() ? "Stop" : "Play");
     transportLabel_->setText(controller_->isPlaying() ? "RUN" : "STOP");
+    connectOutputsButton_->setEnabled(controller_->audioReady());
     stopRecordButton_->setEnabled(controller_->isRecording());
     recordWavButton_->setEnabled(controller_->isRecording() == false);
     recordFlacButton_->setEnabled(controller_->isRecording() == false);
@@ -951,10 +1229,10 @@ void MainWindow::syncActiveBarToTransport() {
 }
 
 void MainWindow::saveProject() {
-    const QString defaultName = QString("%1/groove-forge-project-%2.json")
+    const QString defaultName = QString("%1/rtaudioseq-project-%2.json")
         .arg(QDir::homePath())
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"));
-    const QString path = QFileDialog::getSaveFileName(this, "Save Project", defaultName, "Groove Forge Project (*.json)");
+    const QString path = QFileDialog::getSaveFileName(this, "Save Project", defaultName, "RTAudioSeq Project (*.json)");
     if (path.isEmpty()) {
         return;
     }
@@ -966,7 +1244,7 @@ void MainWindow::saveProject() {
     }
 
     QJsonObject root;
-    root["format"] = "groove-forge-project";
+    root["format"] = "rtaudioseq-project";
     root["version"] = 1;
     root["scene"] = sceneToJson(controller_->scene());
     file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
@@ -977,7 +1255,7 @@ void MainWindow::saveProject() {
 }
 
 void MainWindow::loadProject() {
-    const QString path = QFileDialog::getOpenFileName(this, "Load Project", QString(), "Groove Forge Project (*.json)");
+    const QString path = QFileDialog::getOpenFileName(this, "Load Project", QString(), "RTAudioSeq Project (*.json)");
     if (path.isEmpty()) {
         return;
     }
@@ -991,13 +1269,14 @@ void MainWindow::loadProject() {
     const QJsonDocument document = QJsonDocument::fromJson(file.readAll());
     file.close();
     if (document.isObject() == false) {
-        QMessageBox::warning(this, "Load Failed", "The selected file is not a valid Groove Forge project.");
+        QMessageBox::warning(this, "Load Failed", "The selected file is not a valid RTAudioSeq project.");
         return;
     }
 
     const QJsonObject root = document.object();
-    if (root["format"].toString() != "groove-forge-project") {
-        QMessageBox::warning(this, "Load Failed", "The selected file is not a Groove Forge project.");
+    const QString format = root["format"].toString();
+    if ((format != "rtaudioseq-project") && (format != "groove-forge-project")) {
+        QMessageBox::warning(this, "Load Failed", "The selected file is not a RTAudioSeq project.");
         return;
     }
     if (root["version"].toInt() != 1) {
@@ -1083,7 +1362,7 @@ void MainWindow::loadSoundfontFile() {
 }
 
 void MainWindow::renderBarsToWav() {
-    const QString defaultName = QString("%1/groove-forge-render-%2.wav")
+    const QString defaultName = QString("%1/rtaudioseq-render-%2.wav")
         .arg(QDir::homePath())
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"));
     const QString path = QFileDialog::getSaveFileName(this, "Render WAV By Bars", defaultName, "WAV Files (*.wav)");
@@ -1102,7 +1381,7 @@ void MainWindow::renderBarsToWav() {
 }
 
 void MainWindow::renderSecondsToWav() {
-    const QString defaultName = QString("%1/groove-forge-render-%2.wav")
+    const QString defaultName = QString("%1/rtaudioseq-render-%2.wav")
         .arg(QDir::homePath())
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"));
     const QString path = QFileDialog::getSaveFileName(this, "Render WAV By Seconds", defaultName, "WAV Files (*.wav)");
@@ -1122,7 +1401,7 @@ void MainWindow::renderSecondsToWav() {
 
 void MainWindow::startRecordingToFile(AudioFileFormat format) {
     const QString extension = format == AudioFileFormat::Wav ? "wav" : "flac";
-    const QString defaultName = QString("%1/groove-forge-%2.%3")
+    const QString defaultName = QString("%1/rtaudioseq-%2.%3")
         .arg(QDir::homePath())
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd-hhmmss"))
         .arg(extension);
@@ -1151,22 +1430,39 @@ QPushButton* MainWindow::makeStepButton(int instrumentIndex, int stepIndex) {
     connect(button, &QPushButton::clicked, this, [this, instrumentIndex, stepIndex]() {
         const GrooveScene scene = controller_->scene();
         const int absoluteStep = currentEditBarIndex() * scene.stepsPerBar + stepIndex;
+        setSelectedStep(instrumentIndex, absoluteStep);
         controller_->toggleStep(instrumentIndex, absoluteStep);
         refreshFromScene();
     });
     button->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(button, &QWidget::customContextMenuRequested, this, [this, instrumentIndex, stepIndex](const QPoint&) {
+        const GrooveScene scene = controller_->scene();
+        const int absoluteStep = currentEditBarIndex() * scene.stepsPerBar + stepIndex;
+        setSelectedStep(instrumentIndex, absoluteStep);
         editStepParameters(instrumentIndex, stepIndex);
     });
     return button;
 }
 
-QString MainWindow::stepButtonStyle(bool active, bool currentStep) const {
+QString MainWindow::stepButtonStyle(bool active, bool currentStep, bool locked, bool selected) const {
     const QString background = active ? "#e0a458" : "#1b2029";
     const QString foreground = active ? "#111318" : "#95a0b6";
-    const QString border = currentStep ? "#f25f5c" : "#3a455b";
-    return QString("QPushButton { background: %1; color: %2; border: 2px solid %3; font-weight: bold; }")
-        .arg(background, foreground, border);
+    QString border = "#3a455b";
+    if (locked) {
+        border = "#58c4dd";
+    }
+    if (selected) {
+        border = "#f3f1e8";
+    }
+    if (currentStep && selected) {
+        border = "#ff6f91";
+    } else if (currentStep) {
+        border = "#f25f5c";
+    }
+    const int borderWidth = selected ? 3 : 2;
+    return QString("QPushButton { background: %1; color: %2; border: %4px solid %3; font-weight: bold; }")
+        .arg(background, foreground, border)
+        .arg(borderWidth);
 }
 
 QString MainWindow::sampleLabelText(const std::string& path) const {
@@ -1174,6 +1470,83 @@ QString MainWindow::sampleLabelText(const std::string& path) const {
         return "No sample loaded";
     }
     return QFileInfo(QString::fromStdString(path)).fileName();
+}
+
+void MainWindow::editInstrumentDefaults(int instrumentIndex) {
+    const GrooveScene scene = controller_->scene();
+    if ((instrumentIndex < 0) || (instrumentIndex >= static_cast<int>(scene.instruments.size()))) {
+        return;
+    }
+
+    const auto& instrument = scene.instruments[static_cast<std::size_t>(instrumentIndex)];
+    QDialog dialog(this);
+    dialog.setWindowTitle(QString("%1 Defaults").arg(QString::fromStdString(instrument.name)));
+    auto* form = new QFormLayout(&dialog);
+
+    auto* volumeSpin = new QDoubleSpinBox(&dialog);
+    volumeSpin->setRange(0.0, 1.5);
+    volumeSpin->setDecimals(2);
+    volumeSpin->setSingleStep(0.05);
+    volumeSpin->setValue(instrument.stepDefaults.volume);
+
+    auto* attackSpin = new QDoubleSpinBox(&dialog);
+    attackSpin->setRange(0.001, 2.0);
+    attackSpin->setDecimals(3);
+    attackSpin->setSingleStep(0.005);
+    attackSpin->setValue(instrument.stepDefaults.attack);
+
+    auto* decaySpin = new QDoubleSpinBox(&dialog);
+    decaySpin->setRange(0.001, 4.0);
+    decaySpin->setDecimals(3);
+    decaySpin->setSingleStep(0.010);
+    decaySpin->setValue(instrument.stepDefaults.decay);
+
+    auto* sustainSpin = new QDoubleSpinBox(&dialog);
+    sustainSpin->setRange(0.0, 1.0);
+    sustainSpin->setDecimals(2);
+    sustainSpin->setSingleStep(0.05);
+    sustainSpin->setValue(instrument.stepDefaults.sustain);
+
+    auto* releaseSpin = new QDoubleSpinBox(&dialog);
+    releaseSpin->setRange(0.001, 4.0);
+    releaseSpin->setDecimals(3);
+    releaseSpin->setSingleStep(0.010);
+    releaseSpin->setValue(instrument.stepDefaults.release);
+
+    auto* gateSpin = new QDoubleSpinBox(&dialog);
+    gateSpin->setRange(0.05, 1.5);
+    gateSpin->setDecimals(2);
+    gateSpin->setSingleStep(0.05);
+    gateSpin->setValue(instrument.stepDefaults.gate);
+
+    form->addRow("Volume", volumeSpin);
+    form->addRow("Attack", attackSpin);
+    form->addRow("Decay", decaySpin);
+    form->addRow("Sustain", sustainSpin);
+    form->addRow("Release", releaseSpin);
+    form->addRow("Gate", gateSpin);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    form->addRow(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    GrooveScene updatedScene = scene;
+    auto& updatedInstrument = updatedScene.instruments[static_cast<std::size_t>(instrumentIndex)];
+    updatedInstrument.stepDefaults.volume = static_cast<float>(volumeSpin->value());
+    updatedInstrument.stepDefaults.attack = static_cast<float>(attackSpin->value());
+    updatedInstrument.stepDefaults.decay = static_cast<float>(decaySpin->value());
+    updatedInstrument.stepDefaults.sustain = static_cast<float>(sustainSpin->value());
+    updatedInstrument.stepDefaults.release = static_cast<float>(releaseSpin->value());
+    updatedInstrument.stepDefaults.gate = static_cast<float>(gateSpin->value());
+    applyInstrumentDefaultsToUnlockedSteps(updatedInstrument);
+    controller_->setScene(updatedScene);
+    lastMessage_ = QString("Applied defaults to unlocked steps for %1").arg(QString::fromStdString(updatedInstrument.name));
+    refreshFromScene();
 }
 
 void MainWindow::editStepParameters(int instrumentIndex, int stepIndex) {
@@ -1197,6 +1570,12 @@ void MainWindow::editStepParameters(int instrumentIndex, int stepIndex) {
     velocitySpin->setDecimals(2);
     velocitySpin->setSingleStep(0.05);
     velocitySpin->setValue(currentStep.velocity);
+
+    auto* volumeSpin = new QDoubleSpinBox(&dialog);
+    volumeSpin->setRange(0.0, 1.5);
+    volumeSpin->setDecimals(2);
+    volumeSpin->setSingleStep(0.05);
+    volumeSpin->setValue(currentStep.volume);
 
     auto* noteSpin = new QSpinBox(&dialog);
     noteSpin->setRange(0, 127);
@@ -1232,13 +1611,18 @@ void MainWindow::editStepParameters(int instrumentIndex, int stepIndex) {
     gateSpin->setSingleStep(0.05);
     gateSpin->setValue(currentStep.gate);
 
+    auto* lockCheck = new QCheckBox(&dialog);
+    lockCheck->setChecked(currentStep.locked);
+
     form->addRow("Velocity", velocitySpin);
+    form->addRow("Volume", volumeSpin);
     form->addRow("Note", noteSpin);
     form->addRow("Attack", attackSpin);
     form->addRow("Decay", decaySpin);
     form->addRow("Sustain", sustainSpin);
     form->addRow("Release", releaseSpin);
     form->addRow("Gate", gateSpin);
+    form->addRow("Lock Step", lockCheck);
 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
     form->addRow(buttons);
@@ -1252,7 +1636,9 @@ void MainWindow::editStepParameters(int instrumentIndex, int stepIndex) {
     GrooveScene updatedScene = scene;
     auto& step = updatedScene.instruments[static_cast<std::size_t>(instrumentIndex)].steps[static_cast<std::size_t>(absoluteStep)];
     step.active = true;
+    step.locked = lockCheck->isChecked();
     step.velocity = static_cast<float>(velocitySpin->value());
+    step.volume = static_cast<float>(volumeSpin->value());
     step.note = noteSpin->value();
     step.attack = static_cast<float>(attackSpin->value());
     step.decay = static_cast<float>(decaySpin->value());

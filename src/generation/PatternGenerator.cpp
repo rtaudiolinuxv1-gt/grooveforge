@@ -23,10 +23,12 @@ GrooveScene PatternGenerator::createScene(const GrooveScene& templateScene) {
         for (auto& step : instrument.steps) {
             step = Step {};
             step.active = false;
+            step.locked = false;
             step.velocity = 0.0f;
             step.note = instrument.rootNote;
         }
         generateInstrument(instrument, scene.stepsPerBar, totalStepCount(scene));
+        applyInstrumentDefaultsToUnlockedSteps(instrument);
     }
 
     return scene;

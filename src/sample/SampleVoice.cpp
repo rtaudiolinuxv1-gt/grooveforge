@@ -7,7 +7,7 @@ namespace groove {
 
 void SampleVoice::trigger(std::shared_ptr<const SampleBuffer> sample, const Step& step, float gateSeconds, double playbackRate) {
     sample_ = std::move(sample);
-    velocity_ = std::clamp(step.velocity, 0.0f, 1.0f);
+    velocity_ = std::clamp(step.velocity * step.volume, 0.0f, 1.5f);
     position_ = 0.0;
     increment_ = playbackRate;
     time_ = 0.0f;

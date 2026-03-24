@@ -1,22 +1,20 @@
-# Groove Forge
+# RTAudioSeq
 
-`Groove Forge` is a Linux-native generative groovebox MVP built with `Qt5 Widgets`, `JACK`, and plain C++17.
+`RTAudioSeq` is a Linux-native generative groovebox built with `Qt5 Widgets`, `JACK`, `FluidSynth`, and plain C++17.
 
 ## What it does
 
-- 16-step sequencer with kick, snare, hat, and bass tracks
-- Density controls per track
+- Variable-length step sequencer with dynamic instruments
+- SF2, sample, and MIDI instrument routing
 - Swing, tempo, mutation depth, and auto-mutation bar count
 - Live regeneration and pattern mutation
-- Internal drum and bass synthesis with no external samples
-- JACK audio output
+- JACK audio output and offline WAV export
 
 ## Layout
 
 - `src/app`: application orchestration
 - `src/audio`: JACK transport and render loop
 - `src/core`: shared musical data structures
-- `src/dsp`: synth voices
 - `src/generation`: pattern generation and mutation rules
 - `src/ui`: Qt widgets and layout
 - `tests`: non-UI verification
@@ -34,6 +32,5 @@ ctest --test-dir build --output-on-failure
 Start JACK or PipeWire's JACK shim first, then launch:
 
 ```bash
-./build/groove_forge
+./build/RTAudioSeq
 ```
-# grooveforge

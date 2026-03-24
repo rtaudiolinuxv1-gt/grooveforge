@@ -113,7 +113,8 @@ bool OfflineRenderer::renderToFile(const GrooveScene& inputScene, const std::str
                         noteState.note = std::clamp(step.note, 0, 127);
                         noteState.samplesRemaining = gateSamples;
                         soundfont.selectPreset(noteState.channel, instrument.layers.soundfontBank, instrument.layers.soundfontProgram);
-                        soundfont.noteOn(noteState.channel, noteState.note, std::clamp(static_cast<int>(step.velocity * 127.0f), 1, 127));
+                        soundfont.noteOn(
+                            noteState.channel, noteState.note, std::clamp(static_cast<int>(step.velocity * step.volume * 127.0f), 1, 127));
                     }
                 }
                 transportStep = (transportStep + 1) % totalSteps;

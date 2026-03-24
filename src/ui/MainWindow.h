@@ -12,6 +12,7 @@ QT_BEGIN_NAMESPACE
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QGroupBox;
 class QGridLayout;
 class QLabel;
 class QLayout;
@@ -61,6 +62,13 @@ private:
     void rebuildStepGrid();
     void clearLayout(QLayout* layout);
     void updateStepGridButtonSizing();
+    void refreshGridGeometry();
+    void scheduleGridGeometryRefresh();
+    void setSelectedStep(int instrumentIndex, int absoluteStepIndex);
+    bool hasSelectedVisibleStep(const GrooveScene& scene) const;
+    void updateVirtualKeyboard();
+    void applySelectedStepNote(int midiNote);
+    void shiftSelectedKeyboardOctave(int delta);
     void populateRoleCombo(QComboBox* combo) const;
     InstrumentRole roleFromCombo(const QComboBox* combo) const;
     int roleComboIndex(InstrumentRole role) const;
@@ -71,6 +79,7 @@ private:
     void saveProject();
     void loadProject();
     void loadSampleForInstrument(int instrumentIndex);
+    void editInstrumentDefaults(int instrumentIndex);
     void editStepParameters(int instrumentIndex, int stepIndex);
     void setPreviewFile(const QString& path);
     void seekPreview(qint64 deltaMs);
@@ -80,7 +89,7 @@ private:
     void startRecordingToFile(AudioFileFormat format);
     int currentEditBarIndex() const;
     QPushButton* makeStepButton(int instrumentIndex, int stepIndex);
-    QString stepButtonStyle(bool active, bool currentStep) const;
+    QString stepButtonStyle(bool active, bool currentStep, bool locked, bool selected) const;
     QString sampleLabelText(const std::string& path) const;
     QString soundfontLabelText(const std::string& path) const;
 
@@ -89,6 +98,7 @@ private:
     QLabel* statusLabel_ = nullptr;
     QLabel* transportLabel_ = nullptr;
     QPushButton* playButton_ = nullptr;
+    QPushButton* connectOutputsButton_ = nullptr;
     QPushButton* recordWavButton_ = nullptr;
     QPushButton* recordFlacButton_ = nullptr;
     QPushButton* stopRecordButton_ = nullptr;
@@ -120,12 +130,20 @@ private:
     QScrollArea* stepScrollArea_ = nullptr;
     QWidget* stepGridWidget_ = nullptr;
     QGridLayout* stepGridLayout_ = nullptr;
+    QGroupBox* stepKeyboardBox_ = nullptr;
+    QLabel* selectedStepLabel_ = nullptr;
+    QPushButton* octaveDownButton_ = nullptr;
+    QPushButton* octaveUpButton_ = nullptr;
+    std::vector<QPushButton*> keyboardNoteButtons_;
     QMediaPlayer* previewPlayer_ = nullptr;
     QString previewPath_;
     QString lastMessage_;
     std::vector<InstrumentWidgets> instrumentWidgets_;
     std::vector<QLabel*> stepRowLabels_;
     std::vector<std::vector<QPushButton*>> stepButtons_;
+    int selectedInstrumentIndex_ = -1;
+    int selectedAbsoluteStepIndex_ = -1;
+    int selectedKeyboardOctave_ = 4;
 };
 
 }  // namespace groove

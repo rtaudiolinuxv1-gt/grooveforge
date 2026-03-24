@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(groove_forge VERSION 0.2.0 LANGUAGES CXX)
+project(RTAudioSeq VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,7 +17,7 @@ pkg_check_modules(FLUIDSYNTH REQUIRED IMPORTED_TARGET fluidsynth)
 
 enable_testing()
 
-set(GROOVE_FORGE_SOURCES
+set(RTAUDIOSEQ_SOURCES
     src/main.cpp
     src/app/GrooveController.cpp
     src/audio/JackEngine.cpp
@@ -30,9 +30,9 @@ set(GROOVE_FORGE_SOURCES
     src/ui/MainWindow.cpp
 )
 
-add_executable(groove_forge ${GROOVE_FORGE_SOURCES})
-target_include_directories(groove_forge PRIVATE src)
-target_link_libraries(groove_forge PRIVATE Qt5::Widgets Qt5::Multimedia PkgConfig::JACK PkgConfig::SNDFILE PkgConfig::FLUIDSYNTH Threads::Threads)
+add_executable(RTAudioSeq ${RTAUDIOSEQ_SOURCES})
+target_include_directories(RTAudioSeq PRIVATE src)
+target_link_libraries(RTAudioSeq PRIVATE Qt5::Widgets Qt5::Multimedia PkgConfig::JACK PkgConfig::SNDFILE PkgConfig::FLUIDSYNTH Threads::Threads)
 
 add_executable(pattern_generator_tests
     tests/PatternGeneratorTests.cpp

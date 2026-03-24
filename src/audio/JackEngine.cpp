@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <cerrno>
 
 namespace groove {
 
@@ -116,6 +117,38 @@ void JackEngine::clearSoundfont() {
 std::vector<SoundFontPreset> JackEngine::soundfontPresets() const {
     std::lock_guard<std::mutex> lock(stateMutex_);
     return soundfont_.presets();
+}
+
+bool JackEngine::autoConnectOutputs() {
+    if ((client_ == nullptr) || (leftPort_ == nullptr) || (rightPort_ == nullptr)) {
+        return false;
+    }
+
+    const char** playbackPorts = jack_get_ports(client_, nullptr, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput | JackPortIsPhysical);
+    if ((playbackPorts == nullptr) || (playbackPorts[0] == nullptr)) {
+        if (playbackPorts != nullptr) {
+            jack_free(playbackPorts);
+        }
+        return false;
+    }
+
+    const char* leftName = jack_port_name(leftPort_);
+    const char* rightName = jack_port_name(rightPort_);
+    if ((leftName == nullptr) || (rightName == nullptr)) {
+        jack_free(playbackPorts);
+        return false;
+    }
+
+    const char* playbackLeft = playbackPorts[0];
+    const char* playbackRight = playbackPorts[1] != nullptr ? playbackPorts[1] : playbackPorts[0];
+
+    const int leftResult = jack_connect(client_, leftName, playbackLeft);
+    const int rightResult = jack_connect(client_, rightName, playbackRight);
+    jack_free(playbackPorts);
+
+    const bool leftOk = (leftResult == 0) || (leftResult == EEXIST);
+    const bool rightOk = (rightResult == 0) || (rightResult == EEXIST);
+    return leftOk && rightOk;
 }
 
 bool JackEngine::startRecording(const std::string& path, AudioFileFormat format) {
@@ -280,7 +313,8 @@ void JackEngine::renderStepLocked(const GrooveScene& snapshot, void* midiBuffer,
             midiState.channel = static_cast<std::uint8_t>(std::clamp(instrument.layers.midiChannel - 1, 0, 15));
             midiState.note = clampMidiValue(step.note);
             midiState.samplesRemaining = gateSamples;
-            writeMidiNoteOn(midiBuffer, frameOffset, midiState.channel, midiState.note, clampMidiValue(static_cast<int>(step.velocity * 127.0f)));
+            writeMidiNoteOn(
+                midiBuffer, frameOffset, midiState.channel, midiState.note, clampMidiValue(static_cast<int>(step.velocity * step.volume * 127.0f)));
         }
 
         if (instrument.layers.soundfontEnabled && soundfont_.isLoaded()) {
@@ -293,7 +327,7 @@ void JackEngine::renderStepLocked(const GrooveScene& snapshot, void* midiBuffer,
             noteState.note = clampMidiValue(step.note);
             noteState.samplesRemaining = gateSamples;
             soundfont_.selectPreset(noteState.channel, instrument.layers.soundfontBank, instrument.layers.soundfontProgram);
-            soundfont_.noteOn(noteState.channel, noteState.note, std::clamp(static_cast<int>(step.velocity * 127.0f), 1, 127));
+            soundfont_.noteOn(noteState.channel, noteState.note, std::clamp(static_cast<int>(step.velocity * step.volume * 127.0f), 1, 127));
         }
     }
 

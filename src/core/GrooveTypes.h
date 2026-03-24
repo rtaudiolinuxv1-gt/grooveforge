@@ -33,8 +33,19 @@ enum class InstrumentRole {
 
 struct Step {
     bool active = false;
+    bool locked = false;
     float velocity = 0.0f;
+    float volume = 1.0f;
     int note = 60;
+    float attack = 0.002f;
+    float decay = 0.120f;
+    float sustain = 0.0f;
+    float release = 0.080f;
+    float gate = 0.82f;
+};
+
+struct StepParameterDefaults {
+    float volume = 1.0f;
     float attack = 0.002f;
     float decay = 0.120f;
     float sustain = 0.0f;
@@ -59,6 +70,7 @@ struct InstrumentDefinition {
     InstrumentRole role = InstrumentRole::Custom;
     float density = 0.70f;
     int rootNote = 60;
+    StepParameterDefaults stepDefaults;
     InstrumentLayerSettings layers;
     std::vector<Step> steps;
 };
@@ -206,6 +218,34 @@ inline Step makeStep(float velocity, int note) {
     return step;
 }
 
+inline void clampStepParameterDefaults(StepParameterDefaults& defaults) {
+    defaults.volume = std::clamp(defaults.volume, 0.0f, 1.5f);
+    defaults.attack = std::clamp(defaults.attack, 0.001f, 2.0f);
+    defaults.decay = std::clamp(defaults.decay, 0.001f, 4.0f);
+    defaults.sustain = std::clamp(defaults.sustain, 0.0f, 1.0f);
+    defaults.release = std::clamp(defaults.release, 0.001f, 4.0f);
+    defaults.gate = std::clamp(defaults.gate, 0.05f, 1.5f);
+}
+
+inline void applyStepParameterDefaults(Step& step, const StepParameterDefaults& defaults) {
+    step.volume = defaults.volume;
+    step.attack = defaults.attack;
+    step.decay = defaults.decay;
+    step.sustain = defaults.sustain;
+    step.release = defaults.release;
+    step.gate = defaults.gate;
+}
+
+inline void applyInstrumentDefaultsToUnlockedSteps(InstrumentDefinition& instrument) {
+    clampStepParameterDefaults(instrument.stepDefaults);
+    for (auto& step : instrument.steps) {
+        if (step.locked) {
+            continue;
+        }
+        applyStepParameterDefaults(step, instrument.stepDefaults);
+    }
+}
+
 inline InstrumentDefinition makeInstrument(InstrumentRole role, const std::string& customName = std::string()) {
     InstrumentDefinition instrument;
     instrument.role = role;
@@ -272,8 +312,10 @@ inline void resizeInstrumentSteps(InstrumentDefinition& instrument, int stepCoun
 
     Step defaultStep;
     defaultStep.active = false;
+    defaultStep.locked = false;
     defaultStep.velocity = 0.0f;
     defaultStep.note = instrument.rootNote;
+    applyStepParameterDefaults(defaultStep, instrument.stepDefaults);
     const std::size_t oldSize = instrument.steps.size();
     instrument.steps.resize(static_cast<std::size_t>(stepCount), defaultStep);
     for (std::size_t index = oldSize; index < instrument.steps.size(); ++index) {
@@ -304,6 +346,7 @@ inline GrooveScene normalizedScene(GrooveScene scene) {
         }
         instrument.density = std::clamp(instrument.density, 0.0f, 1.0f);
         instrument.rootNote = std::clamp(instrument.rootNote, 0, 127);
+        clampStepParameterDefaults(instrument.stepDefaults);
         instrument.layers.midiChannel = std::clamp(instrument.layers.midiChannel, 1, 16);
         instrument.layers.sampleRootMidiNote = std::clamp(instrument.layers.sampleRootMidiNote, 0, 127);
         instrument.layers.soundfontChannel = std::clamp(instrument.layers.soundfontChannel, 1, 16);
@@ -311,19 +354,20 @@ inline GrooveScene normalizedScene(GrooveScene scene) {
         instrument.layers.soundfontProgram = std::clamp(instrument.layers.soundfontProgram, 0, 127);
         resizeInstrumentSteps(instrument, stepCount);
         for (auto& step : instrument.steps) {
+            step.volume = std::clamp(step.volume, 0.0f, 1.5f);
             step.note = std::clamp(step.note, 0, 127);
             step.velocity = std::clamp(step.velocity, 0.0f, 1.0f);
             if (step.attack <= 0.0f) {
-                step.attack = 0.002f;
+                step.attack = instrument.stepDefaults.attack;
             }
             if (step.decay <= 0.0f) {
-                step.decay = 0.120f;
+                step.decay = instrument.stepDefaults.decay;
             }
             if (step.release <= 0.0f) {
-                step.release = 0.080f;
+                step.release = instrument.stepDefaults.release;
             }
             if (step.gate <= 0.0f) {
-                step.gate = 0.82f;
+                step.gate = instrument.stepDefaults.gate;
             }
             step.sustain = std::clamp(step.sustain, 0.0f, 1.0f);
         }
